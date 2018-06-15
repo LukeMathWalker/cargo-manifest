@@ -35,7 +35,8 @@ pub struct TomlManifest<Metadata = Value> {
     pub bin: Vec<TomlLibOrBin>,
     /// Note that due to autolibs feature this is not the complete list
     pub lib: Option<TomlLibOrBin>,
-    pub profile: Option<TomlProfiles>,
+    #[serde(default)]
+    pub profile: TomlProfiles,
 }
 
 impl TomlManifest<Value> {
@@ -50,7 +51,7 @@ impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Default, Deserialize)]
 pub struct TomlProfiles {
     pub release: Option<TomlProfile>,
     pub dev: Option<TomlProfile>,
@@ -62,8 +63,8 @@ pub struct TomlProfiles {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlProfile {
-    pub opt_level: Option<String>,
-    pub debug: Option<bool>,
+    pub opt_level: Option<Value>,
+    pub debug: Option<Value>,
     pub rpath: Option<bool>,
     pub lto: Option<Value>,
     pub debug_assertions: Option<bool>,
@@ -148,14 +149,6 @@ pub struct TomlDependencyDetail {
     pub package: Option<String>,
 }
 
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(untagged)]
-pub enum StringOrBool {
-    String(String),
-    Bool(bool),
-}
-
 /// You can replace `Metadata` type with your own
 /// to parse into something more useful than a generic toml `Value`
 #[derive(Debug, Clone, Deserialize)]
@@ -164,7 +157,7 @@ pub struct TomlPackage<Metadata = Value> {
     pub name: String,
     /// e.g. "1.9.0"
     pub version: String,
-    pub build: Option<StringOrBool>,
+    pub build: Option<Value>,
     pub workspace: Option<String>,
     #[serde(default)]
     /// e.g. ["Author <e@mail>", "etc"]
