@@ -16,6 +16,9 @@ pub type TomlPlatformDepsSet = BTreeMap<String, TomlPlatform>;
 pub type TomlFeatureSet = BTreeMap<String, Vec<String>>;
 
 /// The top-level `Cargo.toml` structure
+///
+/// The `Metadata` is a type for `[package.metadata]` table. You can replace it with
+/// your own struct type if you use the metadata and don't want to use the catch-all `Value` type.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlManifest<Metadata = Value> {
