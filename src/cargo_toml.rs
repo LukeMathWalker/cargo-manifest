@@ -43,14 +43,42 @@ pub struct TomlManifest<Metadata = Value> {
 }
 
 impl TomlManifest<Value> {
-    pub fn from_slice(cargo_toml_file: &[u8]) -> Result<Self, Error> {
-        toml::from_slice(cargo_toml_file)
+    /// Parse contents of a `Cargo.toml` file loaded as a byte slice
+    pub fn from_slice(cargo_toml_content: &[u8]) -> Result<Self, Error> {
+        Self::from_slice_with_metadata(cargo_toml_content)
+    }
+
+    /// Parse contents of a `Cargo.toml` file loaded as a string
+    ///
+    /// Note: this is **not** a file name, but file's content.
+    pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
+        match toml::from_str(cargo_toml_content) {
+            Ok(manifest) => Ok(manifest),
+            Err(e) => {
+                Self::fudge_parse(cargo_toml_content)
+                .ok_or(e)
+            },
+        }
     }
 }
 
 impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
-    pub fn from_slice_with_metadata(cargo_toml_file: &[u8]) -> Result<Self, Error> {
-        toml::from_slice(cargo_toml_file)
+    /// Parse `Cargo.toml`, and parse its `[package.metadata]` into a custom Serde-compatible type
+    pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
+        match toml::from_slice(cargo_toml_content) {
+            Ok(manifest) => Ok(manifest),
+            Err(e) => {
+                std::str::from_utf8(cargo_toml_content).ok()
+                    .and_then(Self::fudge_parse)
+                    .ok_or(e)
+            },
+        }
+    }
+
+    /// Some old crates lack the `[package]` header
+    fn fudge_parse(cargo_toml_content: &str) -> Option<Self> {
+        let fudged = format!("[package]\n{}", cargo_toml_content.replace("[project]",""));
+        toml::from_str(&fudged).ok()
     }
 }
 
