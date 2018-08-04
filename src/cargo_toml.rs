@@ -19,7 +19,7 @@ pub type TomlFeatureSet = BTreeMap<String, Vec<String>>;
 ///
 /// The `Metadata` is a type for `[package.metadata]` table. You can replace it with
 /// your own struct type if you use the metadata and don't want to use the catch-all `Value` type.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlManifest<Metadata = Value> {
     pub package: TomlPackage<Metadata>,
@@ -82,7 +82,7 @@ impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct TomlProfiles {
     pub release: Option<TomlProfile>,
     pub dev: Option<TomlProfile>,
@@ -91,7 +91,7 @@ pub struct TomlProfiles {
     pub doc: Option<TomlProfile>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlProfile {
     pub opt_level: Option<Value>,
@@ -106,7 +106,7 @@ pub struct TomlProfile {
 }
 
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlLibOrBin {
     pub path: Option<String>,
@@ -121,7 +121,7 @@ pub struct TomlLibOrBin {
     pub harness: Option<bool>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlPlatform {
     #[serde(default)]
@@ -132,7 +132,7 @@ pub struct TomlPlatform {
     pub build_dependencies: TomlDepsSet,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum TomlDependency {
     Simple(String),
@@ -161,7 +161,7 @@ impl TomlDependency {
     }
 }
 
-#[derive(Deserialize, Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlDependencyDetail {
     pub version: Option<String>,
@@ -182,7 +182,7 @@ pub struct TomlDependencyDetail {
 
 /// You can replace `Metadata` type with your own
 /// to parse into something more useful than a generic toml `Value`
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TomlPackage<Metadata = Value> {
     /// Careful: some names are uppercase
     pub name: String,
