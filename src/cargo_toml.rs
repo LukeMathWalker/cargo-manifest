@@ -2,8 +2,8 @@
 //! to load and inspect `Cargo.toml` metadata.
 //!
 //! See `TomlManifest::from_slice`.
-extern crate toml;
-extern crate serde;
+use toml;
+
 #[macro_use] extern crate serde_derive;
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -186,6 +186,8 @@ pub struct TomlDependencyDetail {
 pub struct TomlPackage<Metadata = Value> {
     /// Careful: some names are uppercase
     pub name: String,
+    #[serde(default)]
+    pub edition: Edition,
     /// e.g. "1.9.0"
     pub version: String,
     pub build: Option<Value>,
@@ -209,4 +211,18 @@ pub struct TomlPackage<Metadata = Value> {
     pub license_file: Option<String>,
     pub repository: Option<String>,
     pub metadata: Option<Metadata>,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Edition {
+    #[serde(rename = "2015")]
+    E2015,
+    #[serde(rename = "2018")]
+    E2018,
+}
+
+impl Default for Edition {
+    fn default() -> Self {
+        Edition::E2015
+    }
 }
