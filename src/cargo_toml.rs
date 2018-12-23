@@ -4,12 +4,12 @@
 //! See `TomlManifest::from_slice`.
 use toml;
 
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
-pub use toml::Value;
-pub use toml::de::Error;
+pub use toml::{de::Error, Value};
 
 pub type TomlDepsSet = BTreeMap<String, TomlDependency>;
 pub type TomlPlatformDepsSet = BTreeMap<String, TomlPlatform>;
@@ -54,10 +54,7 @@ impl TomlManifest<Value> {
     pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
         match toml::from_str(cargo_toml_content) {
             Ok(manifest) => Ok(manifest),
-            Err(e) => {
-                Self::fudge_parse(cargo_toml_content)
-                .ok_or(e)
-            },
+            Err(e) => Self::fudge_parse(cargo_toml_content).ok_or(e),
         }
     }
 }
@@ -67,17 +64,13 @@ impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
         match toml::from_slice(cargo_toml_content) {
             Ok(manifest) => Ok(manifest),
-            Err(e) => {
-                std::str::from_utf8(cargo_toml_content).ok()
-                    .and_then(Self::fudge_parse)
-                    .ok_or(e)
-            },
+            Err(e) => std::str::from_utf8(cargo_toml_content).ok().and_then(Self::fudge_parse).ok_or(e),
         }
     }
 
     /// Some old crates lack the `[package]` header
     fn fudge_parse(cargo_toml_content: &str) -> Option<Self> {
-        let fudged = format!("[package]\n{}", cargo_toml_content.replace("[project]",""));
+        let fudged = format!("[package]\n{}", cargo_toml_content.replace("[project]", ""));
         toml::from_str(&fudged).ok()
     }
 }
@@ -104,7 +97,6 @@ pub struct TomlProfile {
     pub incremental: Option<bool>,
     pub overflow_checks: Option<bool>,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -143,9 +135,10 @@ impl TomlDependency {
     pub fn req(&self) -> &str {
         match *self {
             TomlDependency::Simple(ref v) => v,
-            TomlDependency::Detailed(ref d) => d.version.as_ref().map(|s|s.as_str()).unwrap_or("*"),
+            TomlDependency::Detailed(ref d) => d.version.as_ref().map(|s| s.as_str()).unwrap_or("*"),
         }
     }
+
     pub fn req_features(&self) -> &[String] {
         match *self {
             TomlDependency::Simple(_) => &[],

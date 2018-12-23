@@ -1,7 +1,6 @@
-
-use toml;
 use cargo_toml::TomlManifest;
 use std::fs::read;
+use toml;
 
 #[test]
 fn own() {
