@@ -130,31 +130,38 @@ pub struct Product {
     pub name: Option<String>,
 
     /// A flag for enabling unit tests for this product. This is used by `cargo test`.
-    pub test: Option<bool>,
+    #[serde(default = "default_true")]
+    pub test: bool,
 
     /// A flag for enabling documentation tests for this product. This is only relevant
     /// for libraries, it has no effect on other sections. This is used by
     /// `cargo test`.
-    pub doctest: Option<bool>,
+    #[serde(default = "default_true")]
+    pub doctest: bool,
 
     /// A flag for enabling benchmarks for this product. This is used by `cargo bench`.
-    pub bench: Option<bool>,
+    #[serde(default = "default_true")]
+    pub bench: bool,
 
     /// A flag for enabling documentation of this product. This is used by `cargo doc`.
-    pub doc: Option<bool>,
+    #[serde(default = "default_true")]
+    pub doc: bool,
 
     /// If the product is meant to be a compiler plugin, this field must be set to true
     /// for Cargo to correctly compile it and make it available for all dependencies.
-    pub plugin: Option<bool>,
+    #[serde(default)]
+    pub plugin: bool,
 
     /// If the product is meant to be a "macros 1.1" procedural macro, this field must
     /// be set to true.
-    pub proc_macro: Option<bool>,
+    #[serde(default)]
+    pub proc_macro: bool,
 
     /// If set to false, `cargo test` will omit the `--test` flag to rustc, which
     /// stops it from generating a test harness. This is useful when the binary being
     /// built manages the test runner itself.
-    pub harness: Option<bool>,
+    #[serde(default = "default_true")]
+    pub harness: bool,
 
     /// If set then a product can be configured to use a different edition than the
     /// `[package]` is configured to use, perhaps only compiling a library with the
@@ -173,6 +180,25 @@ pub struct Product {
     /// The available options are "dylib", "rlib", "staticlib", "cdylib", and "proc-macro".
     #[serde(default)]
     pub crate_type: Vec<String>,
+}
+
+impl Default for Product {
+    fn default() -> Self {
+        Self {
+            path: None,
+            name: None,
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            harness: true,
+            plugin: false,
+            proc_macro: false,
+            required_features: Vec::new(),
+            crate_type: Vec::new(),
+            edition: Some(Edition::default()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
