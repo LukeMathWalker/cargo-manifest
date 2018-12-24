@@ -9,11 +9,14 @@ extern crate serde_derive;
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
-pub use toml::{de::Error, Value};
+pub use toml::Value;
 
 pub type TomlDepsSet = BTreeMap<String, TomlDependency>;
 pub type TomlPlatformDepsSet = BTreeMap<String, TomlPlatform>;
 pub type TomlFeatureSet = BTreeMap<String, Vec<String>>;
+
+mod error;
+pub use crate::error::Error;
 
 /// The top-level `Cargo.toml` structure
 ///
@@ -67,7 +70,7 @@ impl TomlManifest<Value> {
     pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
         match toml::from_str(cargo_toml_content) {
             Ok(manifest) => Ok(manifest),
-            Err(e) => Self::fudge_parse(cargo_toml_content).ok_or(e),
+            Err(e) => Self::fudge_parse(cargo_toml_content).ok_or(Error::Parse(e)),
         }
     }
 }
@@ -77,7 +80,7 @@ impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
         match toml::from_slice(cargo_toml_content) {
             Ok(manifest) => Ok(manifest),
-            Err(e) => std::str::from_utf8(cargo_toml_content).ok().and_then(Self::fudge_parse).ok_or(e),
+            Err(e) => std::str::from_utf8(cargo_toml_content).ok().and_then(Self::fudge_parse).ok_or(Error::Parse(e)),
         }
     }
 
