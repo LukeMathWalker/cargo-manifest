@@ -42,6 +42,10 @@ pub struct TomlManifest<Metadata = Value> {
     pub profile: TomlProfiles,
 }
 
+fn default_true() -> bool {
+    true
+}
+
 impl TomlManifest<Value> {
     /// Parse contents of a `Cargo.toml` file loaded as a byte slice
     pub fn from_slice(cargo_toml_content: &[u8]) -> Result<Self, Error> {
@@ -204,6 +208,15 @@ pub struct TomlPackage<Metadata = Value> {
     pub license_file: Option<String>,
     pub repository: Option<String>,
     pub metadata: Option<Metadata>,
+
+    #[serde(default = "default_true")]
+    pub autobins: bool,
+    #[serde(default = "default_true")]
+    pub autoexamples: bool,
+    #[serde(default = "default_true")]
+    pub autotests: bool,
+    #[serde(default = "default_true")]
+    pub autobenches: bool,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
