@@ -1,7 +1,7 @@
 //! This crate defines `struct`s that can be deserialized with Serde
 //! to load and inspect `Cargo.toml` metadata.
 //!
-//! See `TomlManifest::from_slice`.
+//! See `Manifest::from_slice`.
 use toml;
 
 #[macro_use]
@@ -11,9 +11,9 @@ use std::collections::BTreeMap;
 
 pub use toml::Value;
 
-pub type TomlDepsSet = BTreeMap<String, TomlDependency>;
-pub type TomlPlatformDepsSet = BTreeMap<String, TomlPlatform>;
-pub type TomlFeatureSet = BTreeMap<String, Vec<String>>;
+pub type DepsSet = BTreeMap<String, Dependency>;
+pub type TargetDepsSet = BTreeMap<String, Target>;
+pub type FeatureSet = BTreeMap<String, Vec<String>>;
 
 mod error;
 pub use crate::error::Error;
@@ -24,32 +24,32 @@ pub use crate::error::Error;
 /// your own struct type if you use the metadata and don't want to use the catch-all `Value` type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct TomlManifest<Metadata = Value> {
-    pub package: TomlPackage<Metadata>,
+pub struct Manifest<Metadata = Value> {
+    pub package: Package<Metadata>,
     #[serde(default)]
-    pub dependencies: TomlDepsSet,
+    pub dependencies: DepsSet,
     #[serde(default)]
-    pub dev_dependencies: TomlDepsSet,
+    pub dev_dependencies: DepsSet,
     #[serde(default)]
-    pub build_dependencies: TomlDepsSet,
+    pub build_dependencies: DepsSet,
     #[serde(default)]
-    pub target: TomlPlatformDepsSet,
+    pub target: TargetDepsSet,
     #[serde(default)]
-    pub features: TomlFeatureSet,
+    pub features: FeatureSet,
     /// Note that due to autobins feature this is not the complete list
     #[serde(default)]
-    pub bin: Vec<TomlLibOrBin>,
+    pub bin: Vec<Product>,
     #[serde(default)]
-    pub bench: Vec<TomlLibOrBin>,
+    pub bench: Vec<Product>,
     #[serde(default)]
-    pub test: Vec<TomlLibOrBin>,
+    pub test: Vec<Product>,
     #[serde(default)]
-    pub example: Vec<TomlLibOrBin>,
+    pub example: Vec<Product>,
 
     /// Note that due to autolibs feature this is not the complete list
-    pub lib: Option<TomlLibOrBin>,
+    pub lib: Option<Product>,
     #[serde(default)]
-    pub profile: TomlProfiles,
+    pub profile: Profiles,
     #[serde(default)]
     pub badges: Badges,
 }
@@ -58,7 +58,7 @@ fn default_true() -> bool {
     true
 }
 
-impl TomlManifest<Value> {
+impl Manifest<Value> {
     /// Parse contents of a `Cargo.toml` file already loaded as a byte slice
     pub fn from_slice(cargo_toml_content: &[u8]) -> Result<Self, Error> {
         Self::from_slice_with_metadata(cargo_toml_content)
@@ -75,7 +75,7 @@ impl TomlManifest<Value> {
     }
 }
 
-impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
+impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     /// Parse `Cargo.toml`, and parse its `[package.metadata]` into a custom Serde-compatible type
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
         match toml::from_slice(cargo_toml_content) {
@@ -92,17 +92,17 @@ impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
     }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct TomlProfiles {
-    pub release: Option<TomlProfile>,
-    pub dev: Option<TomlProfile>,
-    pub test: Option<TomlProfile>,
-    pub bench: Option<TomlProfile>,
-    pub doc: Option<TomlProfile>,
+pub struct Profiles {
+    pub release: Option<Profile>,
+    pub dev: Option<Profile>,
+    pub test: Option<Profile>,
+    pub bench: Option<Profile>,
+    pub doc: Option<Profile>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct TomlProfile {
+pub struct Profile {
     pub opt_level: Option<Value>,
     pub debug: Option<Value>,
     pub rpath: Option<bool>,
@@ -116,35 +116,38 @@ pub struct TomlProfile {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
-pub struct TomlLibOrBin {
+/// Cargo uses the term "target" for both "target platform" and "build target" (the thing to build),
+/// which makes it ambigous.
+/// Here Cargo's bin/lib **target** is renamed to **product**.
+pub struct Product {
     /// This field points at where the crate is located, relative to the `Cargo.toml`.
     pub path: Option<String>,
 
-    /// The name of a target is the name of the library or binary that will be generated.
+    /// The name of a product is the name of the library or binary that will be generated.
     /// This is defaulted to the name of the package, with any dashes replaced
     /// with underscores. (Rust `extern crate` declarations reference this name;
     /// therefore the value must be a valid Rust identifier to be usable.)
     pub name: Option<String>,
 
-    /// A flag for enabling unit tests for this target. This is used by `cargo test`.
+    /// A flag for enabling unit tests for this product. This is used by `cargo test`.
     pub test: Option<bool>,
 
-    /// A flag for enabling documentation tests for this target. This is only relevant
+    /// A flag for enabling documentation tests for this product. This is only relevant
     /// for libraries, it has no effect on other sections. This is used by
     /// `cargo test`.
     pub doctest: Option<bool>,
 
-    /// A flag for enabling benchmarks for this target. This is used by `cargo bench`.
+    /// A flag for enabling benchmarks for this product. This is used by `cargo bench`.
     pub bench: Option<bool>,
 
-    /// A flag for enabling documentation of this target. This is used by `cargo doc`.
+    /// A flag for enabling documentation of this product. This is used by `cargo doc`.
     pub doc: Option<bool>,
 
-    /// If the target is meant to be a compiler plugin, this field must be set to true
+    /// If the product is meant to be a compiler plugin, this field must be set to true
     /// for Cargo to correctly compile it and make it available for all dependencies.
     pub plugin: Option<bool>,
 
-    /// If the target is meant to be a "macros 1.1" procedural macro, this field must
+    /// If the product is meant to be a "macros 1.1" procedural macro, this field must
     /// be set to true.
     pub proc_macro: Option<bool>,
 
@@ -153,15 +156,15 @@ pub struct TomlLibOrBin {
     /// built manages the test runner itself.
     pub harness: Option<bool>,
 
-    /// If set then a target can be configured to use a different edition than the
+    /// If set then a product can be configured to use a different edition than the
     /// `[package]` is configured to use, perhaps only compiling a library with the
     /// 2018 edition or only compiling one unit test with the 2015 edition. By default
-    /// all targets are compiled with the edition specified in `[package]`.
+    /// all products are compiled with the edition specified in `[package]`.
     #[serde(default)]
     pub edition: Option<Edition>,
 
-    /// The required-features field specifies which features the target needs in order to be built.
-    /// If any of the required features are not selected, the target will be skipped.
+    /// The required-features field specifies which features the product needs in order to be built.
+    /// If any of the required features are not selected, the product will be skipped.
     /// This is only relevant for the `[[bin]]`, `[[bench]]`, `[[test]]`, and `[[example]]` sections,
     /// it has no effect on `[lib]`.
     #[serde(default)]
@@ -174,48 +177,48 @@ pub struct TomlLibOrBin {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct TomlPlatform {
+pub struct Target {
     #[serde(default)]
-    pub dependencies: TomlDepsSet,
+    pub dependencies: DepsSet,
     #[serde(default)]
-    pub dev_dependencies: TomlDepsSet,
+    pub dev_dependencies: DepsSet,
     #[serde(default)]
-    pub build_dependencies: TomlDepsSet,
+    pub build_dependencies: DepsSet,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum TomlDependency {
+pub enum Dependency {
     Simple(String),
-    Detailed(TomlDependencyDetail),
+    Detailed(DependencyDetail),
 }
 
-impl TomlDependency {
+impl Dependency {
     pub fn req(&self) -> &str {
         match *self {
-            TomlDependency::Simple(ref v) => v,
-            TomlDependency::Detailed(ref d) => d.version.as_ref().map(|s| s.as_str()).unwrap_or("*"),
+            Dependency::Simple(ref v) => v,
+            Dependency::Detailed(ref d) => d.version.as_ref().map(|s| s.as_str()).unwrap_or("*"),
         }
     }
 
     pub fn req_features(&self) -> &[String] {
         match *self {
-            TomlDependency::Simple(_) => &[],
-            TomlDependency::Detailed(ref d) => &d.features,
+            Dependency::Simple(_) => &[],
+            Dependency::Detailed(ref d) => &d.features,
         }
     }
 
     pub fn optional(&self) -> bool {
         match *self {
-            TomlDependency::Simple(_) => false,
-            TomlDependency::Detailed(ref d) => d.optional,
+            Dependency::Simple(_) => false,
+            Dependency::Detailed(ref d) => d.optional,
         }
     }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct TomlDependencyDetail {
+pub struct DependencyDetail {
     pub version: Option<String>,
     pub registry: Option<String>,
     pub registry_index: Option<String>,
@@ -235,7 +238,7 @@ pub struct TomlDependencyDetail {
 /// You can replace `Metadata` type with your own
 /// to parse into something more useful than a generic toml `Value`
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TomlPackage<Metadata = Value> {
+pub struct Package<Metadata = Value> {
     /// Careful: some names are uppercase
     pub name: String,
     #[serde(default)]
