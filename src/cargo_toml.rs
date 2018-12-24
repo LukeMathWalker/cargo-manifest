@@ -47,7 +47,7 @@ fn default_true() -> bool {
 }
 
 impl TomlManifest<Value> {
-    /// Parse contents of a `Cargo.toml` file loaded as a byte slice
+    /// Parse contents of a `Cargo.toml` file already loaded as a byte slice
     pub fn from_slice(cargo_toml_content: &[u8]) -> Result<Self, Error> {
         Self::from_slice_with_metadata(cargo_toml_content)
     }
@@ -105,15 +105,40 @@ pub struct TomlProfile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlLibOrBin {
+    /// This field points at where the crate is located, relative to the `Cargo.toml`.
     pub path: Option<String>,
+
+    /// The name of a target is the name of the library or binary that will be generated.
+    /// This is defaulted to the name of the package, with any dashes replaced
+    /// with underscores. (Rust `extern crate` declarations reference this name;
+    /// therefore the value must be a valid Rust identifier to be usable.)
     pub name: Option<String>,
 
+    /// A flag for enabling unit tests for this target. This is used by `cargo test`.
     pub test: Option<bool>,
+
+    /// A flag for enabling documentation tests for this target. This is only relevant
+    /// for libraries, it has no effect on other sections. This is used by
+    /// `cargo test`.
     pub doctest: Option<bool>,
+
+    /// A flag for enabling benchmarks for this target. This is used by `cargo bench`.
     pub bench: Option<bool>,
+
+    /// A flag for enabling documentation of this target. This is used by `cargo doc`.
     pub doc: Option<bool>,
+
+    /// If the target is meant to be a compiler plugin, this field must be set to true
+    /// for Cargo to correctly compile it and make it available for all dependencies.
     pub plugin: Option<bool>,
+
+    /// If the target is meant to be a "macros 1.1" procedural macro, this field must
+    /// be set to true.
     pub proc_macro: Option<bool>,
+
+    /// If set to false, `cargo test` will omit the `--test` flag to rustc, which
+    /// stops it from generating a test harness. This is useful when the binary being
+    /// built manages the test runner itself.
     pub harness: Option<bool>,
 }
 
@@ -193,13 +218,17 @@ pub struct TomlPackage<Metadata = Value> {
     /// e.g. ["Author <e@mail>", "etc"]
     pub authors: Vec<String>,
     pub links: Option<String>,
+    /// A short blurb about the package. This is not rendered in any format when
+    /// uploaded to crates.io (aka this is not markdown).
     pub description: Option<String>,
     pub homepage: Option<String>,
     pub documentation: Option<String>,
+    /// This points to a file under the package root (relative to this `Cargo.toml`).
     pub readme: Option<String>,
     #[serde(default)]
     pub keywords: Vec<String>,
     #[serde(default)]
+    /// This is a list of up to five categories where this crate would fit.
     /// e.g. ["command-line-utilities", "development-tools::cargo-plugins"]
     pub categories: Vec<String>,
     /// e.g. "MIT"
