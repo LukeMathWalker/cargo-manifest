@@ -36,6 +36,13 @@ pub struct TomlManifest<Metadata = Value> {
     /// Note that due to autobins feature this is not the complete list
     #[serde(default)]
     pub bin: Vec<TomlLibOrBin>,
+    #[serde(default)]
+    pub bench: Vec<TomlLibOrBin>,
+    #[serde(default)]
+    pub test: Vec<TomlLibOrBin>,
+    #[serde(default)]
+    pub example: Vec<TomlLibOrBin>,
+
     /// Note that due to autolibs feature this is not the complete list
     pub lib: Option<TomlLibOrBin>,
     #[serde(default)]
@@ -77,7 +84,7 @@ impl<Metadata: for<'a> Deserialize<'a>> TomlManifest<Metadata> {
         let fudged = format!("[package]\n{}", cargo_toml_content.replace("[project]", ""));
         toml::from_str(&fudged).ok()
     }
-}
+    }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct TomlProfiles {
@@ -102,7 +109,7 @@ pub struct TomlProfile {
     pub overflow_checks: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct TomlLibOrBin {
     /// This field points at where the crate is located, relative to the `Cargo.toml`.
@@ -140,6 +147,24 @@ pub struct TomlLibOrBin {
     /// stops it from generating a test harness. This is useful when the binary being
     /// built manages the test runner itself.
     pub harness: Option<bool>,
+
+    /// If set then a target can be configured to use a different edition than the
+    /// `[package]` is configured to use, perhaps only compiling a library with the
+    /// 2018 edition or only compiling one unit test with the 2015 edition. By default
+    /// all targets are compiled with the edition specified in `[package]`.
+    #[serde(default)]
+    pub edition: Option<Edition>,
+
+    /// The required-features field specifies which features the target needs in order to be built.
+    /// If any of the required features are not selected, the target will be skipped.
+    /// This is only relevant for the `[[bin]]`, `[[bench]]`, `[[test]]`, and `[[example]]` sections,
+    /// it has no effect on `[lib]`.
+    #[serde(default)]
+    pub required_features: Vec<String>,
+
+    /// The available options are "dylib", "rlib", "staticlib", "cdylib", and "proc-macro".
+    #[serde(default)]
+    pub crate_type: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -246,6 +271,8 @@ pub struct TomlPackage<Metadata = Value> {
     pub autotests: bool,
     #[serde(default = "default_true")]
     pub autobenches: bool,
+    #[serde(default = "default_true")]
+    pub publish: bool,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
