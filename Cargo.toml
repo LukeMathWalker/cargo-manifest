@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "cargo_toml"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Kornel <kornel@geekhood.net>"]
 description = "`Cargo.toml` struct definitions for parsing with Serde"
 keywords = ["cargo", "metadata", "struct", "toml", "serde"]
