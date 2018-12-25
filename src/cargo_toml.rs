@@ -31,6 +31,7 @@ pub use crate::afs::*;
 #[serde(rename_all = "kebab-case")]
 pub struct Manifest<Metadata = Value> {
     pub package: Option<Package<Metadata>>,
+    pub workspace: Option<Workspace>,
     #[serde(default)]
     pub dependencies: DepsSet,
     #[serde(default)]
@@ -59,6 +60,19 @@ pub struct Manifest<Metadata = Value> {
     pub profile: Profiles,
     #[serde(default)]
     pub badges: Badges,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub struct Workspace {
+    #[serde(default)]
+    members: Vec<String>,
+
+    #[serde(default)]
+    default_members: Vec<String>,
+
+    #[serde(default)]
+    exclude: Vec<String>,
 }
 
 fn default_true() -> bool {
