@@ -30,7 +30,7 @@ pub use crate::afs::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Manifest<Metadata = Value> {
-    pub package: Package<Metadata>,
+    pub package: Option<Package<Metadata>>,
     #[serde(default)]
     pub dependencies: DepsSet,
     #[serde(default)]
@@ -132,66 +132,69 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     /// You can provide any implementation of directory scan, which doesn't have to
     /// be reading straight from disk (might scan a tarball or a git repo, for example).
     pub fn complete_from_abstract_filesystem(&mut self, fs: impl AbstractFilesystem) -> Result<(), Error> {
-        let src = fs.file_names_in("src")?;
-
-        if let Some(ref mut lib) = self.lib {
-            lib.required_features.clear(); // not applicable
-        } else if src.contains("lib.rs") {
-            self.lib = Some(Product {
-                name: Some(self.package.name.replace("-", "_")),
-                path: Some("src/lib.rs".to_string()),
-                edition: Some(self.package.edition),
-                crate_type: vec!["rlib".to_string()],
-                ..Product::default()
-            })
-        }
-
-        if self.package.autobins && self.bin.is_empty() {
-            self.bin = self.autoset("src/bin", &fs);
-            if src.contains("main.rs") {
-                self.bin.push(Product {
-                    name: Some(self.package.name.replace("-", "_")),
-                    path: Some("src/main.rs".to_string()),
-                    edition: Some(self.package.edition),
-                    ..Product::default()
-                })
+        if let Some(ref package) = self.package {
+            let src = fs.file_names_in("src")?;
+            if let Some(ref mut lib) = self.lib {
+                lib.required_features.clear(); // not applicable
+            } else if src.contains("lib.rs") {
+                    self.lib = Some(Product {
+                        name: Some(package.name.replace("-", "_")),
+                        path: Some("src/lib.rs".to_string()),
+                        edition: Some(package.edition),
+                        crate_type: vec!["rlib".to_string()],
+                        ..Product::default()
+                    })
             }
-        }
-        if self.package.autoexamples && self.example.is_empty()  {
-            self.example = self.autoset("examples", &fs);
-        }
-        if self.package.autotests && self.test.is_empty() {
-            self.test = self.autoset("tests", &fs);
-        }
-        if self.package.autobenches && self.bench.is_empty() {
-            self.bench = self.autoset("benches", &fs);
+
+            if package.autobins && self.bin.is_empty() {
+                self.bin = self.autoset("src/bin", &fs);
+                if src.contains("main.rs") {
+                    self.bin.push(Product {
+                        name: Some(package.name.replace("-", "_")),
+                        path: Some("src/main.rs".to_string()),
+                        edition: Some(package.edition),
+                        ..Product::default()
+                    })
+                }
+            }
+            if package.autoexamples && self.example.is_empty()  {
+                self.example = self.autoset("examples", &fs);
+            }
+            if package.autotests && self.test.is_empty() {
+                self.test = self.autoset("tests", &fs);
+            }
+            if package.autobenches && self.bench.is_empty() {
+                self.bench = self.autoset("benches", &fs);
+            }
         }
         Ok(())
     }
 
     fn autoset(&self, dir: &str, fs: &dyn AbstractFilesystem) -> Vec<Product> {
         let mut out = Vec::new();
-        if let Ok(bins) = fs.file_names_in(dir) {
-            for name in bins {
-                let rel_path = format!("{}/{}", dir, name);
-                if name.ends_with(".rs") {
-                    out.push(Product {
-                        name: Some(name.trim_end_matches(".rs").replace("-", "_")),
-                        path: Some(rel_path),
-                        edition: Some(self.package.edition),
-                        ..Product::default()
-                    })
-                } else if let Ok(sub) = fs.file_names_in(&rel_path) {
-                    if sub.contains("main.rs") {
+        if let Some(ref package) = self.package {
+            if let Ok(bins) = fs.file_names_in(dir) {
+                for name in bins {
+                    let rel_path = format!("{}/{}", dir, name);
+                    if name.ends_with(".rs") {
                         out.push(Product {
-                            name: Some(name.replace("-", "_")),
-                            path: Some(rel_path + "/main.rs"),
-                            edition: Some(self.package.edition),
+                            name: Some(name.trim_end_matches(".rs").replace("-", "_")),
+                            path: Some(rel_path),
+                            edition: Some(package.edition),
                             ..Product::default()
                         })
+                    } else if let Ok(sub) = fs.file_names_in(&rel_path) {
+                        if sub.contains("main.rs") {
+                            out.push(Product {
+                                name: Some(name.replace("-", "_")),
+                                path: Some(rel_path + "/main.rs"),
+                                edition: Some(package.edition),
+                                ..Product::default()
+                            })
+                        }
                     }
                 }
-}
+            }
         }
         out
     }
