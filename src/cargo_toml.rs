@@ -47,6 +47,8 @@ pub struct TomlManifest<Metadata = Value> {
     pub lib: Option<TomlLibOrBin>,
     #[serde(default)]
     pub profile: TomlProfiles,
+    #[serde(default)]
+    pub badges: Badges,
 }
 
 fn default_true() -> bool {
@@ -274,6 +276,96 @@ pub struct TomlPackage<Metadata = Value> {
     #[serde(default = "default_true")]
     pub publish: bool,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct Badge {
+    repository: String,
+    #[serde(default = "default_master")]
+    branch: String,
+    service: Option<String>,
+    id: Option<String>,
+    project_name: Option<String>,
+}
+
+fn default_master() -> String {
+    "master".to_string()
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct Badges {
+
+    /// Appveyor: `repository` is required. `branch` is optional; default is `master`
+    /// `service` is optional; valid values are `github` (default), `bitbucket`, and
+    /// `gitlab`; `id` is optional; you can specify the appveyor project id if you
+    /// want to use that instead. `project_name` is optional; use when the repository
+    /// name differs from the appveyor project name.
+    #[serde(default)]
+    appveyor: Option<Badge>,
+
+    /// Circle CI: `repository` is required. `branch` is optional; default is `master`
+    #[serde(default)]
+    circle_ci: Option<Badge>,
+
+    /// GitLab: `repository` is required. `branch` is optional; default is `master`
+    #[serde(default)]
+    gitlab: Option<Badge>,
+
+    /// Travis CI: `repository` in format "<user>/<project>" is required.
+    /// `branch` is optional; default is `master`
+    #[serde(default)]
+    travis_ci: Option<Badge>,
+
+    /// Codecov: `repository` is required. `branch` is optional; default is `master`
+    /// `service` is optional; valid values are `github` (default), `bitbucket`, and
+    /// `gitlab`.
+    #[serde(default)]
+    codecov: Option<Badge>,
+
+    /// Coveralls: `repository` is required. `branch` is optional; default is `master`
+    /// `service` is optional; valid values are `github` (default) and `bitbucket`.
+    #[serde(default)]
+    coveralls: Option<Badge>,
+
+    /// Is it maintained resolution time: `repository` is required.
+    #[serde(default)]
+    is_it_maintained_issue_resolution: Option<Badge>,
+
+    /// Is it maintained percentage of open issues: `repository` is required.
+    #[serde(default)]
+    is_it_maintained_open_issues: Option<Badge>,
+
+    /// Maintenance: `status` is required. Available options are `actively-developed`,
+    /// `passively-maintained`, `as-is`, `experimental`, `looking-for-maintainer`,
+    /// `deprecated`, and the default `none`, which displays no badge on crates.io.
+    #[serde(default)]
+    maintenance: Maintenance,
+}
+
+#[derive(Debug, Copy, Default, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Maintenance {
+    status: MaintenanceStatus,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum MaintenanceStatus {
+    None,
+    ActivelyDeveloped,
+    PassivelyMaintained,
+    AsIs,
+    Experimental,
+    LookingForMaintainer,
+    Deprecated,
+}
+
+impl Default for MaintenanceStatus {
+    fn default() -> Self {
+        MaintenanceStatus::None
+    }
+}
+
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Edition {
