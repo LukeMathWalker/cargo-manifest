@@ -19,3 +19,20 @@ fn opt_level() {
     assert_eq!(false, m.lib.unwrap().bench.unwrap());
     assert_eq!(cargo_toml::Edition::E2015, m.package.edition);
 }
+
+#[test]
+fn autobin() {
+    let m = TomlManifest::from_slice(&read("tests/autobin/Cargo.toml").expect("load autobin")).unwrap();
+    assert_eq!("auto-bin", m.package.name);
+    assert_eq!(cargo_toml::Edition::E2018, m.package.edition);
+    assert!(m.package.autobins);
+}
+
+#[test]
+fn autolib() {
+    let m = TomlManifest::from_slice(&read("tests/autolib/Cargo.toml").expect("load autolib")).unwrap();
+    assert_eq!("auto-lib", m.package.name);
+    assert_eq!(false, m.package.publish);
+    assert_eq!(cargo_toml::Edition::E2015, m.package.edition);
+    assert!(!m.package.autoexamples);
+}

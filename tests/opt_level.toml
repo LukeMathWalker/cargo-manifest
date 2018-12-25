@@ -12,6 +12,8 @@ keywords = ["byte", "endian", "big-endian", "little-endian", "binary"]
 categories = ["encoding", "parsing"]
 license = "Unlicense/MIT"
 repository = "https://github.com/BurntSushi/byteorder"
+publish = false
+
 [profile.bench]
 opt-level = 3
 
