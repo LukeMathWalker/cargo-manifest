@@ -2,6 +2,9 @@
 //! to load and inspect `Cargo.toml` metadata.
 //!
 //! See `Manifest::from_slice`.
+use std::path::Path;
+use std::fs;
+use std::io;
 use toml;
 
 #[macro_use]
@@ -16,7 +19,9 @@ pub type TargetDepsSet = BTreeMap<String, Target>;
 pub type FeatureSet = BTreeMap<String, Vec<String>>;
 
 mod error;
+mod afs;
 pub use crate::error::Error;
+pub use crate::afs::*;
 
 /// The top-level `Cargo.toml` structure
 ///
@@ -37,6 +42,7 @@ pub struct Manifest<Metadata = Value> {
     #[serde(default)]
     pub features: FeatureSet,
     /// Note that due to autobins feature this is not the complete list
+    /// unless you run `complete_from_path`
     #[serde(default)]
     pub bin: Vec<Product>,
     #[serde(default)]
@@ -47,6 +53,7 @@ pub struct Manifest<Metadata = Value> {
     pub example: Vec<Product>,
 
     /// Note that due to autolibs feature this is not the complete list
+    /// unless you run `complete_from_path`
     pub lib: Option<Product>,
     #[serde(default)]
     pub profile: Profiles,
@@ -64,9 +71,14 @@ impl Manifest<Value> {
         Self::from_slice_with_metadata(cargo_toml_content)
     }
 
+    /// Parse contents from a `Cargo.toml` file on disk
+    pub fn from_path(cargo_toml_path: impl AsRef<Path>) -> Result<Self, Error> {
+        Self::from_path_with_metadata(cargo_toml_path)
+    }
+
     /// Parse contents of a `Cargo.toml` file loaded as a string
     ///
-    /// Note: this is **not** a file name, but file's content.
+    /// Note: this is **not** a file name, but file's content. See `from_path`.
     pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
         match toml::from_str(cargo_toml_content) {
             Ok(manifest) => Ok(manifest),
@@ -84,12 +96,106 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         }
     }
 
+    /// Parse contents from `Cargo.toml` file on disk, with custom Serde-compatible metadata type
+    pub fn from_path_with_metadata(cargo_toml_path: impl AsRef<Path>) -> Result<Self, Error> {
+        let cargo_toml_path = cargo_toml_path.as_ref();
+        let cargo_toml_content = fs::read(cargo_toml_path)?;
+        let mut manifest = match toml::from_slice(&cargo_toml_content) {
+            Ok(m) => m,
+            Err(e) => std::str::from_utf8(&cargo_toml_content).ok().and_then(Self::fudge_parse).ok_or(Error::Parse(e))?,
+        };
+        manifest.complete_from_path(cargo_toml_path)?;
+        Ok(manifest)
+    }
+
     /// Some old crates lack the `[package]` header
     fn fudge_parse(cargo_toml_content: &str) -> Option<Self> {
+        if cargo_toml_content.contains("[package]") {
+            return None;
+        }
         let fudged = format!("[package]\n{}", cargo_toml_content.replace("[project]", ""));
         toml::from_str(&fudged).ok()
     }
+
+    /// `Cargo.toml` doesn't contain explicit information about `[lib]` and `[[bin]]`,
+    /// which are inferred based on files on disk.
+    ///
+    /// This scans the disk to make the data in the manifest as complete as possible.
+    pub fn complete_from_path(&mut self, path: &Path) -> Result<(), Error> {
+        let manifest_dir = path.parent().ok_or_else(|| io::Error::new(io::ErrorKind::Other, "bad path"))?;
+        self.complete_from_abstract_filesystem(Filesystem::new(manifest_dir))
     }
+
+    /// `Cargo.toml` doesn't contain explicit information about `[lib]` and `[[bin]]`,
+    /// which are inferred based on files on disk.
+    ///
+    /// You can provide any implementation of directory scan, which doesn't have to
+    /// be reading straight from disk (might scan a tarball or a git repo, for example).
+    pub fn complete_from_abstract_filesystem(&mut self, fs: impl AbstractFilesystem) -> Result<(), Error> {
+        let src = fs.file_names_in("src")?;
+
+        if let Some(ref mut lib) = self.lib {
+            lib.required_features.clear(); // not applicable
+        } else if src.contains("lib.rs") {
+            self.lib = Some(Product {
+                name: Some(self.package.name.replace("-", "_")),
+                path: Some("src/lib.rs".to_string()),
+                edition: Some(self.package.edition),
+                crate_type: vec!["rlib".to_string()],
+                ..Product::default()
+            })
+        }
+
+        if self.package.autobins && self.bin.is_empty() {
+            self.bin = self.autoset("src/bin", &fs);
+            if src.contains("main.rs") {
+                self.bin.push(Product {
+                    name: Some(self.package.name.replace("-", "_")),
+                    path: Some("src/main.rs".to_string()),
+                    edition: Some(self.package.edition),
+                    ..Product::default()
+                })
+            }
+        }
+        if self.package.autoexamples && self.example.is_empty()  {
+            self.example = self.autoset("examples", &fs);
+        }
+        if self.package.autotests && self.test.is_empty() {
+            self.test = self.autoset("tests", &fs);
+        }
+        if self.package.autobenches && self.bench.is_empty() {
+            self.bench = self.autoset("benches", &fs);
+        }
+        Ok(())
+    }
+
+    fn autoset(&self, dir: &str, fs: &dyn AbstractFilesystem) -> Vec<Product> {
+        let mut out = Vec::new();
+        if let Ok(bins) = fs.file_names_in(dir) {
+            for name in bins {
+                let rel_path = format!("{}/{}", dir, name);
+                if name.ends_with(".rs") {
+                    out.push(Product {
+                        name: Some(name.trim_end_matches(".rs").replace("-", "_")),
+                        path: Some(rel_path),
+                        edition: Some(self.package.edition),
+                        ..Product::default()
+                    })
+                } else if let Ok(sub) = fs.file_names_in(&rel_path) {
+                    if sub.contains("main.rs") {
+                        out.push(Product {
+                            name: Some(name.replace("-", "_")),
+                            path: Some(rel_path + "/main.rs"),
+                            edition: Some(self.package.edition),
+                            ..Product::default()
+                        })
+                    }
+                }
+}
+        }
+        out
+    }
+}
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Profiles {
@@ -114,7 +220,7 @@ pub struct Profile {
     pub overflow_checks: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 /// Cargo uses the term "target" for both "target platform" and "build target" (the thing to build),
 /// which makes it ambigous.
