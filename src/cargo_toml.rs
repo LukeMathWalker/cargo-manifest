@@ -164,7 +164,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 self.bin = self.autoset("src/bin", &fs);
                 if src.contains("main.rs") {
                     self.bin.push(Product {
-                        name: Some(package.name.replace("-", "_")),
+                        name: Some(package.name.clone()),
                         path: Some("src/main.rs".to_string()),
                         edition: Some(package.edition),
                         ..Product::default()
@@ -192,7 +192,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                     let rel_path = format!("{}/{}", dir, name);
                     if name.ends_with(".rs") {
                         out.push(Product {
-                            name: Some(name.trim_end_matches(".rs").replace("-", "_")),
+                            name: Some(name.trim_end_matches(".rs").into()),
                             path: Some(rel_path),
                             edition: Some(package.edition),
                             ..Product::default()
@@ -200,7 +200,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                     } else if let Ok(sub) = fs.file_names_in(&rel_path) {
                         if sub.contains("main.rs") {
                             out.push(Product {
-                                name: Some(name.replace("-", "_")),
+                                name: Some(name.into()),
                                 path: Some(rel_path + "/main.rs"),
                                 edition: Some(package.edition),
                                 ..Product::default()

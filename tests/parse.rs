@@ -32,6 +32,7 @@ fn autobin() {
     assert!(package.autobins);
     assert!(m.lib.is_none());
     assert_eq!(1, m.bin.len());
+    assert_eq!(Some("auto-bin"), m.bin[0].name.as_ref().map(|s| s.as_str()));
 }
 
 #[test]
@@ -44,5 +45,6 @@ fn autolib() {
     assert!(package.autobins);
     assert!(!package.autoexamples);
     assert!(m.lib.is_some());
+    assert_eq!("auto_lib", m.lib.unwrap().name.unwrap());
     assert_eq!(0, m.bin.len());
 }
