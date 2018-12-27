@@ -48,3 +48,16 @@ fn autolib() {
     assert_eq!("auto_lib", m.lib.unwrap().name.unwrap());
     assert_eq!(0, m.bin.len());
 }
+
+#[test]
+fn legacy() {
+    let m = Manifest::from_slice(br#"[project]
+                name = "foo"
+                version = "1"
+                "#).expect("parse old");
+    let package = m.package.as_ref().unwrap();
+    assert_eq!("foo", package.name);
+    let m = Manifest::from_str("name = \"foo\"\nversion=\"1\"").expect("parse bare");
+    let package = m.package.as_ref().unwrap();
+    assert_eq!("foo", package.name);
+}

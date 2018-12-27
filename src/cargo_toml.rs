@@ -94,41 +94,34 @@ impl Manifest<Value> {
     ///
     /// Note: this is **not** a file name, but file's content. See `from_path`.
     pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
-        match toml::from_str(cargo_toml_content) {
-            Ok(manifest) => Ok(manifest),
-            Err(e) => Self::fudge_parse(cargo_toml_content).ok_or(Error::Parse(e)),
-        }
+        Self::from_slice_with_metadata(cargo_toml_content.as_bytes())
     }
 }
 
 impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     /// Parse `Cargo.toml`, and parse its `[package.metadata]` into a custom Serde-compatible type
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
-        match toml::from_slice(cargo_toml_content) {
-            Ok(manifest) => Ok(manifest),
-            Err(e) => std::str::from_utf8(cargo_toml_content).ok().and_then(Self::fudge_parse).ok_or(Error::Parse(e)),
+        let mut manifest: Self = toml::from_slice(cargo_toml_content)?;
+        if manifest.package.is_none() && manifest.workspace.is_none() {
+            // Some old crates lack the `[package]` header
+
+            let val: Value = toml::from_slice(cargo_toml_content)?;
+            if let Some(project) = val.get("project") {
+                manifest.package = Some(project.clone().try_into()?);
+            } else {
+                manifest.package = Some(val.try_into()?);
+            }
         }
+        return Ok(manifest);
     }
 
     /// Parse contents from `Cargo.toml` file on disk, with custom Serde-compatible metadata type
     pub fn from_path_with_metadata(cargo_toml_path: impl AsRef<Path>) -> Result<Self, Error> {
         let cargo_toml_path = cargo_toml_path.as_ref();
         let cargo_toml_content = fs::read(cargo_toml_path)?;
-        let mut manifest = match toml::from_slice(&cargo_toml_content) {
-            Ok(m) => m,
-            Err(e) => std::str::from_utf8(&cargo_toml_content).ok().and_then(Self::fudge_parse).ok_or(Error::Parse(e))?,
-        };
+        let mut manifest = Self::from_slice_with_metadata(&cargo_toml_content)?;
         manifest.complete_from_path(cargo_toml_path)?;
         Ok(manifest)
-    }
-
-    /// Some old crates lack the `[package]` header
-    fn fudge_parse(cargo_toml_content: &str) -> Option<Self> {
-        if cargo_toml_content.contains("[package]") {
-            return None;
-        }
-        let fudged = format!("[package]\n{}", cargo_toml_content.replace("[project]", ""));
-        toml::from_str(&fudged).ok()
     }
 
     /// `Cargo.toml` doesn't contain explicit information about `[lib]` and `[[bin]]`,
