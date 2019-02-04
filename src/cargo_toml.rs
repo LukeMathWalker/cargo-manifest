@@ -358,6 +358,15 @@ impl Dependency {
             Dependency::Detailed(ref d) => d.optional,
         }
     }
+
+    // `Some` if it overrides the package name.
+    // If `None`, use the dependency name as the package name.
+    pub fn package(&self) -> Option<&str> {
+        match *self {
+            Dependency::Simple(_) => None,
+            Dependency::Detailed(ref d) => d.package.as_ref().map(|p| p.as_str()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
