@@ -439,12 +439,12 @@ pub struct Package<Metadata = Value> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badge {
-    repository: String,
+    pub repository: String,
     #[serde(default = "default_master")]
-    branch: String,
-    service: Option<String>,
-    id: Option<String>,
-    project_name: Option<String>,
+    pub branch: String,
+    pub service: Option<String>,
+    pub id: Option<String>,
+    pub project_name: Option<String>,
 }
 
 fn default_master() -> String {
@@ -468,50 +468,50 @@ pub struct Badges {
     /// want to use that instead. `project_name` is optional; use when the repository
     /// name differs from the appveyor project name.
     #[serde(default, deserialize_with = "ok_or_default")]
-    appveyor: Option<Badge>,
+    pub appveyor: Option<Badge>,
 
     /// Circle CI: `repository` is required. `branch` is optional; default is `master`
     #[serde(default, deserialize_with = "ok_or_default")]
-    circle_ci: Option<Badge>,
+    pub circle_ci: Option<Badge>,
 
     /// GitLab: `repository` is required. `branch` is optional; default is `master`
     #[serde(default, deserialize_with = "ok_or_default")]
-    gitlab: Option<Badge>,
+    pub gitlab: Option<Badge>,
 
     /// Travis CI: `repository` in format "<user>/<project>" is required.
     /// `branch` is optional; default is `master`
     #[serde(default, deserialize_with = "ok_or_default")]
-    travis_ci: Option<Badge>,
+    pub travis_ci: Option<Badge>,
 
     /// Codecov: `repository` is required. `branch` is optional; default is `master`
     /// `service` is optional; valid values are `github` (default), `bitbucket`, and
     /// `gitlab`.
     #[serde(default, deserialize_with = "ok_or_default")]
-    codecov: Option<Badge>,
+    pub codecov: Option<Badge>,
 
     /// Coveralls: `repository` is required. `branch` is optional; default is `master`
     /// `service` is optional; valid values are `github` (default) and `bitbucket`.
     #[serde(default, deserialize_with = "ok_or_default")]
-    coveralls: Option<Badge>,
+    pub coveralls: Option<Badge>,
 
     /// Is it maintained resolution time: `repository` is required.
     #[serde(default, deserialize_with = "ok_or_default")]
-    is_it_maintained_issue_resolution: Option<Badge>,
+    pub is_it_maintained_issue_resolution: Option<Badge>,
 
     /// Is it maintained percentage of open issues: `repository` is required.
     #[serde(default, deserialize_with = "ok_or_default")]
-    is_it_maintained_open_issues: Option<Badge>,
+    pub is_it_maintained_open_issues: Option<Badge>,
 
     /// Maintenance: `status` is required. Available options are `actively-developed`,
     /// `passively-maintained`, `as-is`, `experimental`, `looking-for-maintainer`,
     /// `deprecated`, and the default `none`, which displays no badge on crates.io.
     #[serde(default, deserialize_with = "ok_or_default")]
-    maintenance: Maintenance,
+    pub maintenance: Maintenance,
 }
 
 #[derive(Debug, Copy, Default, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Maintenance {
-    status: MaintenanceStatus,
+    pub status: MaintenanceStatus,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
