@@ -2,9 +2,9 @@
 //! to load and inspect `Cargo.toml` metadata.
 //!
 //! See `Manifest::from_slice`.
-use std::path::Path;
 use std::fs;
 use std::io;
+use std::path::Path;
 use toml;
 
 #[macro_use]
@@ -19,10 +19,10 @@ pub type DepsSet = BTreeMap<String, Dependency>;
 pub type TargetDepsSet = BTreeMap<String, Target>;
 pub type FeatureSet = BTreeMap<String, Vec<String>>;
 
-mod error;
 mod afs;
-pub use crate::error::Error;
+mod error;
 pub use crate::afs::*;
+pub use crate::error::Error;
 
 /// The top-level `Cargo.toml` structure
 ///
@@ -166,7 +166,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                     })
                 }
             }
-            if package.autoexamples && self.example.is_empty()  {
+            if package.autoexamples && self.example.is_empty() {
                 self.example = self.autoset("examples", &fs);
             }
             if package.autotests && self.test.is_empty() {
@@ -461,7 +461,6 @@ fn ok_or_default<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badges {
-
     /// Appveyor: `repository` is required. `branch` is optional; default is `master`
     /// `service` is optional; valid values are `github` (default), `bitbucket`, and
     /// `gitlab`; `id` is optional; you can specify the appveyor project id if you
@@ -531,7 +530,6 @@ impl Default for MaintenanceStatus {
         MaintenanceStatus::None
     }
 }
-
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Edition {

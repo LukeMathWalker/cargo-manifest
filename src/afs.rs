@@ -1,7 +1,7 @@
 use std::collections::HashSet;
-use std::path::Path;
-use std::io;
 use std::fs::read_dir;
+use std::io;
+use std::path::Path;
 
 pub trait AbstractFilesystem {
     fn file_names_in(&self, rel_path: &str) -> io::Result<HashSet<Box<str>>>;
