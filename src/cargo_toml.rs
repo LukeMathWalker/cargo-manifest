@@ -146,13 +146,13 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             if let Some(ref mut lib) = self.lib {
                 lib.required_features.clear(); // not applicable
             } else if src.contains("lib.rs") {
-                    self.lib = Some(Product {
-                        name: Some(package.name.replace("-", "_")),
-                        path: Some("src/lib.rs".to_string()),
-                        edition: Some(package.edition),
-                        crate_type: vec!["rlib".to_string()],
-                        ..Product::default()
-                    })
+                self.lib = Some(Product {
+                    name: Some(package.name.replace("-", "_")),
+                    path: Some("src/lib.rs".to_string()),
+                    edition: Some(package.edition),
+                    crate_type: vec!["rlib".to_string()],
+                    ..Product::default()
+                })
             }
 
             if package.autobins && self.bin.is_empty() {
