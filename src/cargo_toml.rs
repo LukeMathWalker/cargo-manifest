@@ -28,7 +28,7 @@ pub use crate::error::Error;
 ///
 /// The `Metadata` is a type for `[package.metadata]` table. You can replace it with
 /// your own struct type if you use the metadata and don't want to use the catch-all `Value` type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Manifest<Metadata = Value> {
     pub package: Option<Package<Metadata>>,
@@ -64,7 +64,7 @@ pub struct Manifest<Metadata = Value> {
     pub badges: Badges,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct Workspace {
     #[serde(default)]
@@ -209,7 +209,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     }
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Profiles {
     pub release: Option<Profile>,
     pub dev: Option<Profile>,
@@ -218,7 +218,7 @@ pub struct Profiles {
     pub doc: Option<Profile>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Profile {
     pub opt_level: Option<Value>,
@@ -232,7 +232,7 @@ pub struct Profile {
     pub overflow_checks: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 /// Cargo uses the term "target" for both "target platform" and "build target" (the thing to build),
 /// which makes it ambigous.
@@ -319,7 +319,7 @@ impl Default for Product {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Target {
     #[serde(default)]
@@ -330,7 +330,7 @@ pub struct Target {
     pub build_dependencies: DepsSet,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Dependency {
     Simple(String),
@@ -369,7 +369,7 @@ impl Dependency {
     }
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct DependencyDetail {
     pub version: Option<String>,
@@ -390,7 +390,7 @@ pub struct DependencyDetail {
 
 /// You can replace `Metadata` type with your own
 /// to parse into something more useful than a generic toml `Value`
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Package<Metadata = Value> {
     /// Careful: some names are uppercase
     pub name: String,
@@ -436,7 +436,7 @@ pub struct Package<Metadata = Value> {
     pub publish: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badge {
     pub repository: String,
@@ -458,7 +458,7 @@ fn ok_or_default<'de, T, D>(deserializer: D) -> Result<T, D::Error>
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badges {
     /// Appveyor: `repository` is required. `branch` is optional; default is `master`
@@ -508,12 +508,12 @@ pub struct Badges {
     pub maintenance: Maintenance,
 }
 
-#[derive(Debug, Copy, Default, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Default, Serialize, Deserialize)]
 pub struct Maintenance {
     pub status: MaintenanceStatus,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum MaintenanceStatus {
     None,
@@ -531,7 +531,7 @@ impl Default for MaintenanceStatus {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub enum Edition {
     #[serde(rename = "2015")]
     E2015,
