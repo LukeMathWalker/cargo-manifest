@@ -338,6 +338,13 @@ pub enum Dependency {
 }
 
 impl Dependency {
+    pub fn detail(&self) -> Option<&DependencyDetail> {
+        match *self {
+            Dependency::Simple(_) => None,
+            Dependency::Detailed(ref d) => Some(d),
+        }
+    }
+
     pub fn req(&self) -> &str {
         match *self {
             Dependency::Simple(ref v) => v,
@@ -353,10 +360,7 @@ impl Dependency {
     }
 
     pub fn optional(&self) -> bool {
-        match *self {
-            Dependency::Simple(_) => false,
-            Dependency::Detailed(ref d) => d.optional,
-        }
+        self.detail().map_or(false, |d| d.optional)
     }
 
     // `Some` if it overrides the package name.
@@ -365,6 +369,23 @@ impl Dependency {
         match *self {
             Dependency::Simple(_) => None,
             Dependency::Detailed(ref d) => d.package.as_ref().map(|p| p.as_str()),
+        }
+    }
+
+    // Git URL of this dependency, if any
+    pub fn git(&self) -> Option<&str> {
+        self.detail().and_then(|d| d.git.as_ref().map(|p| p.as_str()))
+    }
+
+    // `true` if it's an usual crates.io dependency,
+    // `false` if git/path/alternative registry
+    pub fn is_crates_io(&self) -> bool {
+        match *self {
+            Dependency::Simple(_) => true,
+            Dependency::Detailed(ref d) => {
+                // TODO: allow registry to be set to crates.io explicitly?
+                d.path.is_none() && d.registry.is_none() && d.registry_index.is_none() && d.git.is_none() && d.tag.is_none() && d.branch.is_none() && d.rev.is_none()
+            }
         }
     }
 }
