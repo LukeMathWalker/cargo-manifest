@@ -33,3 +33,6 @@ i128 = []
 std = []
 [badges.travis-ci]
 repository = "BurntSushi/byteorder"
+
+[patch.crates-io]
+rand = { default-features = false }

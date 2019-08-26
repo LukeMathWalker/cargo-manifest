@@ -21,6 +21,7 @@ fn opt_level() {
     assert_eq!(3, m.profile.bench.unwrap().opt_level.unwrap().as_integer().unwrap());
     assert_eq!(false, m.lib.unwrap().bench);
     assert_eq!(cargo_toml::Edition::E2015, package.edition);
+    assert_eq!(1, m.patch.len());
 }
 
 #[test]

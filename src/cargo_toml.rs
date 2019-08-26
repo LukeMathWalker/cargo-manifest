@@ -18,6 +18,7 @@ pub use toml::Value;
 pub type DepsSet = BTreeMap<String, Dependency>;
 pub type TargetDepsSet = BTreeMap<String, Target>;
 pub type FeatureSet = BTreeMap<String, Vec<String>>;
+pub type PatchSet = BTreeMap<String, DepsSet>;
 
 mod afs;
 mod error;
@@ -53,6 +54,9 @@ pub struct Manifest<Metadata = Value> {
     pub test: Vec<Product>,
     #[serde(default)]
     pub example: Vec<Product>,
+
+    #[serde(default)]
+    pub patch: PatchSet,
 
     /// Note that due to autolibs feature this is not the complete list
     /// unless you run `complete_from_path`
