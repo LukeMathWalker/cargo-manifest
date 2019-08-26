@@ -68,13 +68,13 @@ pub struct Manifest<Metadata = Value> {
 #[serde(rename_all = "kebab-case")]
 pub struct Workspace {
     #[serde(default)]
-    members: Vec<String>,
+    pub members: Vec<String>,
 
     #[serde(default)]
-    default_members: Vec<String>,
+    pub default_members: Vec<String>,
 
     #[serde(default)]
-    exclude: Vec<String>,
+    pub exclude: Vec<String>,
 }
 
 fn default_true() -> bool {
@@ -82,12 +82,16 @@ fn default_true() -> bool {
 }
 
 impl Manifest<Value> {
-    /// Parse contents of a `Cargo.toml` file already loaded as a byte slice
+    /// Parse contents of a `Cargo.toml` file already loaded as a byte slice.
+    ///
+    /// It does not call `complete_from_path`, so may be missing implicit data.
     pub fn from_slice(cargo_toml_content: &[u8]) -> Result<Self, Error> {
         Self::from_slice_with_metadata(cargo_toml_content)
     }
 
-    /// Parse contents from a `Cargo.toml` file on disk
+    /// Parse contents from a `Cargo.toml` file on disk.
+    ///
+    /// Calls `complete_from_path`.
     pub fn from_path(cargo_toml_path: impl AsRef<Path>) -> Result<Self, Error> {
         Self::from_path_with_metadata(cargo_toml_path)
     }
@@ -95,13 +99,17 @@ impl Manifest<Value> {
     /// Parse contents of a `Cargo.toml` file loaded as a string
     ///
     /// Note: this is **not** a file name, but file's content. See `from_path`.
+    ///
+    /// It does not call `complete_from_path`, so may be missing implicit data.
     pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
         Self::from_slice_with_metadata(cargo_toml_content.as_bytes())
     }
 }
 
 impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
-    /// Parse `Cargo.toml`, and parse its `[package.metadata]` into a custom Serde-compatible type
+    /// Parse `Cargo.toml`, and parse its `[package.metadata]` into a custom Serde-compatible type.package
+    ///
+    /// It does not call `complete_from_path`, so may be missing implicit data.
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
         let mut manifest: Self = toml::from_slice(cargo_toml_content)?;
         if manifest.package.is_none() && manifest.workspace.is_none() {
@@ -117,7 +125,9 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         return Ok(manifest);
     }
 
-    /// Parse contents from `Cargo.toml` file on disk, with custom Serde-compatible metadata type
+    /// Parse contents from `Cargo.toml` file on disk, with custom Serde-compatible metadata type.
+    ///
+    /// Calls `complete_from_path`
     pub fn from_path_with_metadata(cargo_toml_path: impl AsRef<Path>) -> Result<Self, Error> {
         let cargo_toml_path = cargo_toml_path.as_ref();
         let cargo_toml_content = fs::read(cargo_toml_path)?;
