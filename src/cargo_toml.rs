@@ -467,8 +467,36 @@ pub struct Package<Metadata = Value> {
     pub autotests: bool,
     #[serde(default = "default_true")]
     pub autobenches: bool,
-    #[serde(default = "default_true")]
-    pub publish: bool,
+    #[serde(default)]
+    pub publish: Publish,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Publish {
+    Flag(bool),
+    Registry(Vec<String>),
+}
+
+impl Default for Publish {
+    fn default() -> Self {
+        Publish::Flag(true)
+    }
+}
+
+impl PartialEq<Publish> for bool {
+    fn eq(&self, p: &Publish) -> bool {
+        match *p {
+            Publish::Flag(flag) => flag == *self,
+            Publish::Registry(ref reg) => !reg.is_empty() == *self,
+        }
+    }
+}
+
+impl PartialEq<bool> for Publish {
+    fn eq(&self, b: &bool) -> bool {
+        b.eq(self)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
