@@ -16,6 +16,6 @@ name = "cargo_toml"
 path = "src/cargo_toml.rs"
 
 [dependencies]
-serde = "1.0.50"
-serde_derive = "1.0.50"
-toml = "0.5.1"
+serde = "1.0.104"
+serde_derive = "1.0.104"
+toml = "0.5.5"
