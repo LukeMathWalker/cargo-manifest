@@ -9,14 +9,11 @@ pub trait AbstractFilesystem {
 
 pub struct Filesystem<'a> {
     path: &'a Path,
-
 }
 
 impl<'a> Filesystem<'a> {
     pub fn new(path: &'a Path) -> Self {
-        Self {
-            path
-        }
+        Self { path }
     }
 }
 
