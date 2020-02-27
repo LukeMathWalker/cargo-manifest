@@ -126,7 +126,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 manifest.package = Some(val.try_into()?);
             }
         }
-        return Ok(manifest);
+        Ok(manifest)
     }
 
     /// Parse contents from `Cargo.toml` file on disk, with custom Serde-compatible metadata type.
