@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "cargo_toml"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Kornel <kornel@geekhood.net>"]
 description = "`Cargo.toml` struct definitions for parsing with Serde"
 keywords = ["cargo", "metadata", "struct", "toml", "serde"]
@@ -17,6 +17,6 @@ name = "cargo_toml"
 path = "src/cargo_toml.rs"
 
 [dependencies]
-serde = "1.0.104"
-serde_derive = "1.0.104"
-toml = "0.5.5"
+serde = "1.0.114"
+serde_derive = "1.0.114"
+toml = "0.5.6"
