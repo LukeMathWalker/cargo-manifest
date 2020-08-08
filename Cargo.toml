@@ -10,6 +10,7 @@ homepage = "https://lib.rs/cargo_toml"
 repository = "https://gitlab.com/crates.rs/cargo_toml"
 documentation = "https://docs.rs/cargo_toml"
 license = "Apache-2.0 OR MIT"
+exclude = ["tests"]
 
 [lib]
 name = "cargo_toml"
