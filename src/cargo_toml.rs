@@ -77,11 +77,11 @@ pub struct Workspace {
     #[serde(default)]
     pub members: Vec<String>,
 
-    #[serde(default)]
-    pub default_members: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_members: Option<Vec<String>>,
 
-    #[serde(default)]
-    pub exclude: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude: Option<Vec<String>>,
 }
 
 fn default_true() -> bool {
@@ -167,7 +167,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                     name: Some(package.name.replace("-", "_")),
                     path: Some("src/lib.rs".to_string()),
                     edition: Some(package.edition),
-                    crate_type: vec!["rlib".to_string()],
+                    crate_type: Some(vec!["rlib".to_string()]),
                     ..Product::default()
                 })
             }
@@ -314,8 +314,8 @@ pub struct Product {
     pub required_features: Vec<String>,
 
     /// The available options are "dylib", "rlib", "staticlib", "cdylib", and "proc-macro".
-    #[serde(default)]
-    pub crate_type: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub crate_type: Option<Vec<String>>,
 }
 
 impl Default for Product {
@@ -331,7 +331,7 @@ impl Default for Product {
             plugin: false,
             proc_macro: false,
             required_features: Vec::new(),
-            crate_type: Vec::new(),
+            crate_type: None,
             edition: Some(Edition::default()),
         }
     }
