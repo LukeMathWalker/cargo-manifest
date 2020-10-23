@@ -1,20 +1,19 @@
 [package]
 edition = "2018"
-name = "cargo_toml"
-version = "0.8.1"
-authors = ["Kornel <kornel@geekhood.net>"]
-description = "`Cargo.toml` struct definitions for parsing with Serde"
-keywords = ["cargo", "metadata", "struct", "toml", "serde"]
+name = "cargo-manifest"
+version = "0.1.0"
+authors = ["Kornel <kornel@geekhood.net>, Luca Palmieri <rust@lpalmieri.com>"]
+description = "Helper crate to parse and manipulate manifests - `Cargo.toml` files."
+keywords = ["cargo", "metadata", "toml", "serde", "manifest"]
 categories = ["rust-patterns", "parser-implementations"]
-homepage = "https://lib.rs/cargo_toml"
-repository = "https://gitlab.com/crates.rs/cargo_toml"
-documentation = "https://docs.rs/cargo_toml"
+repository = "https://github.com/LukeMathWalker/cargo-manifest"
+documentation = "https://docs.rs/cargo-manifest"
 license = "Apache-2.0 OR MIT"
 exclude = ["tests"]
 
 [lib]
-name = "cargo_toml"
-path = "src/cargo_toml.rs"
+name = "cargo-manifest"
+path = "src/lib.rs"
 
 [dependencies]
 serde = "1.0.114"
