@@ -12,7 +12,7 @@ license = "Apache-2.0 OR MIT"
 exclude = ["tests"]
 
 [lib]
-name = "cargo-manifest"
+name = "cargo_manifest"
 path = "src/lib.rs"
 
 [dependencies]
