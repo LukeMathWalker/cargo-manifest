@@ -32,40 +32,43 @@ pub use crate::error::Error;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Manifest<Metadata = Value> {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<Package<Metadata>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub workspace: Option<Workspace>,
-    #[serde(default)]
-    pub dependencies: DepsSet,
-    #[serde(default)]
-    pub dev_dependencies: DepsSet,
-    #[serde(default)]
-    pub build_dependencies: DepsSet,
-    #[serde(default)]
-    pub target: TargetDepsSet,
-    #[serde(default)]
-    pub features: FeatureSet,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dependencies: Option<DepsSet>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dev_dependencies: Option<DepsSet>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub build_dependencies: Option<DepsSet>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target: Option<TargetDepsSet>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub features: Option<FeatureSet>,
     /// Note that due to autobins feature this is not the complete list
     /// unless you run `complete_from_path`
-    #[serde(default)]
-    pub bin: Vec<Product>,
-    #[serde(default)]
-    pub bench: Vec<Product>,
-    #[serde(default)]
-    pub test: Vec<Product>,
-    #[serde(default)]
-    pub example: Vec<Product>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bin: Option<Vec<Product>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bench: Option<Vec<Product>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub test: Option<Vec<Product>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub example: Option<Vec<Product>>,
 
-    #[serde(default)]
-    pub patch: PatchSet,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub patch: Option<PatchSet>,
 
     /// Note that due to autolibs feature this is not the complete list
     /// unless you run `complete_from_path`
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub lib: Option<Product>,
-    #[serde(default)]
-    pub profile: Profiles,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub profile: Option<Profiles>,
 
-    #[serde(default)]
-    pub badges: Badges,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub badges: Option<Badges>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -169,25 +172,26 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 })
             }
 
-            if package.autobins && self.bin.is_empty() {
-                self.bin = self.autoset("src/bin", &fs);
+            if package.autobins && self.bin.is_none() {
+                let mut bin = self.autoset("src/bin", &fs);
                 if src.contains("main.rs") {
-                    self.bin.push(Product {
+                    bin.push(Product {
                         name: Some(package.name.clone()),
                         path: Some("src/main.rs".to_string()),
                         edition: Some(package.edition),
                         ..Product::default()
                     })
                 }
+                self.bin = Some(bin);
             }
-            if package.autoexamples && self.example.is_empty() {
-                self.example = self.autoset("examples", &fs);
+            if package.autoexamples && self.example.is_none() {
+                self.example = Some(self.autoset("examples", &fs));
             }
-            if package.autotests && self.test.is_empty() {
-                self.test = self.autoset("tests", &fs);
+            if package.autotests && self.test.is_none() {
+                self.test = Some(self.autoset("tests", &fs));
             }
-            if package.autobenches && self.bench.is_empty() {
-                self.bench = self.autoset("benches", &fs);
+            if package.autobenches && self.bench.is_none() {
+                self.bench = Some(self.autoset("benches", &fs));
             }
         }
         Ok(())
