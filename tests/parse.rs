@@ -52,6 +52,13 @@ fn autolib() {
 }
 
 #[test]
+fn metadata() {
+    let m = Manifest::from_path("tests/metadata/Cargo.toml").expect("load metadata");
+    let package = m.package.as_ref().unwrap();
+    assert_eq!("metadata", package.name);
+}
+
+#[test]
 fn legacy() {
     let m = Manifest::from_slice(br#"[project]
                 name = "foo"
