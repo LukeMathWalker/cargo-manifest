@@ -169,7 +169,11 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         fs: impl AbstractFilesystem,
     ) -> Result<(), Error> {
         if let Some(ref package) = self.package {
-            let src = fs.file_names_in("src")?;
+            let src = match fs.file_names_in("src") {
+                Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(Default::default()),
+                result => result,
+            }?;
+
             if let Some(ref mut lib) = self.lib {
                 lib.required_features.clear(); // not applicable
             } else if src.contains("lib.rs") {
