@@ -1,3 +1,4 @@
+#![allow(clippy::large_enum_variant)]
 //! This crate defines `struct`s that can be deserialized with Serde
 //! to load and inspect `Cargo.toml` metadata.
 //!
@@ -23,6 +24,7 @@ mod afs;
 mod error;
 pub use crate::afs::*;
 pub use crate::error::Error;
+use std::str::FromStr;
 
 /// The top-level `Cargo.toml` structure
 ///
@@ -101,13 +103,17 @@ impl Manifest<Value> {
     pub fn from_path(cargo_toml_path: impl AsRef<Path>) -> Result<Self, Error> {
         Self::from_path_with_metadata(cargo_toml_path)
     }
+}
+
+impl FromStr for Manifest<Value> {
+    type Err = Error;
 
     /// Parse contents of a `Cargo.toml` file loaded as a string
     ///
     /// Note: this is **not** a file name, but file's content. See `from_path`.
     ///
     /// It does not call `complete_from_path`, so may be missing implicit data.
-    pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
+    fn from_str(cargo_toml_content: &str) -> Result<Self, Self::Err> {
         Self::from_slice_with_metadata(cargo_toml_content.as_bytes())
     }
 }
@@ -370,7 +376,7 @@ impl Dependency {
     pub fn req(&self) -> &str {
         match *self {
             Dependency::Simple(ref v) => v,
-            Dependency::Detailed(ref d) => d.version.as_ref().map(|s| s.as_str()).unwrap_or("*"),
+            Dependency::Detailed(ref d) => d.version.as_deref().unwrap_or("*"),
         }
     }
 
@@ -390,14 +396,14 @@ impl Dependency {
     pub fn package(&self) -> Option<&str> {
         match *self {
             Dependency::Simple(_) => None,
-            Dependency::Detailed(ref d) => d.package.as_ref().map(|p| p.as_str()),
+            Dependency::Detailed(ref d) => d.package.as_deref(),
         }
     }
 
     // Git URL of this dependency, if any
     pub fn git(&self) -> Option<&str> {
         self.detail()
-            .and_then(|d| d.git.as_ref().map(|p| p.as_str()))
+            .and_then(|d| d.git.as_deref())
     }
 
     // `true` if it's an usual crates.io dependency,
@@ -503,7 +509,7 @@ impl PartialEq<Publish> for bool {
     fn eq(&self, p: &Publish) -> bool {
         match *p {
             Publish::Flag(flag) => flag == *self,
-            Publish::Registry(ref reg) => !reg.is_empty() == *self,
+            Publish::Registry(ref reg) => reg.is_empty() != *self,
         }
     }
 }

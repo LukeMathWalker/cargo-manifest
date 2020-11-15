@@ -2,6 +2,7 @@ use cargo_manifest as lib;
 use cargo_manifest::Manifest;
 use std::fs::read;
 use toml;
+use std::str::FromStr;
 
 #[test]
 fn own() {
