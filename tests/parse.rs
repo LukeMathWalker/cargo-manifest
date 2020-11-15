@@ -1,4 +1,5 @@
-use lib::Manifest;
+use cargo_manifest as lib;
+use cargo_manifest::Manifest;
 use std::fs::read;
 use toml;
 
@@ -6,11 +7,11 @@ use toml;
 fn own() {
     let m = Manifest::from_slice(&read("Cargo.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
-    assert_eq!("cargo_toml", package.name);
+    assert_eq!("cargo-manifest", package.name);
     let m =
         Manifest::<toml::Value>::from_slice_with_metadata(&read("Cargo.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
-    assert_eq!("cargo_toml", package.name);
+    assert_eq!("cargo-manifest", package.name);
     assert_eq!(lib::Edition::E2018, package.edition);
 }
 
@@ -22,6 +23,7 @@ fn opt_level() {
     assert_eq!(
         3,
         m.profile
+            .unwrap()
             .bench
             .unwrap()
             .opt_level
@@ -31,7 +33,7 @@ fn opt_level() {
     );
     assert_eq!(false, m.lib.unwrap().bench);
     assert_eq!(lib::Edition::E2015, package.edition);
-    assert_eq!(1, m.patch.len());
+    assert_eq!(1, m.patch.unwrap().len());
 }
 
 #[test]
@@ -42,8 +44,11 @@ fn autobin() {
     assert_eq!(lib::Edition::E2018, package.edition);
     assert!(package.autobins);
     assert!(m.lib.is_none());
-    assert_eq!(1, m.bin.len());
-    assert_eq!(Some("auto-bin"), m.bin[0].name.as_ref().map(|s| s.as_str()));
+    assert_eq!(1, m.bin.as_ref().unwrap().len());
+    assert_eq!(
+        Some("auto-bin"),
+        m.bin.unwrap()[0].name.as_ref().map(|s| s.as_str())
+    );
 }
 
 #[test]
@@ -57,7 +62,7 @@ fn autolib() {
     assert!(!package.autoexamples);
     assert!(m.lib.is_some());
     assert_eq!("auto_lib", m.lib.unwrap().name.unwrap());
-    assert_eq!(0, m.bin.len());
+    assert_eq!(0, m.bin.unwrap().len());
 }
 
 #[test]
