@@ -1,3 +1,4 @@
+#![allow(clippy::large_enum_variant)]
 //! This crate defines `struct`s that can be deserialized with Serde
 //! to load and inspect `Cargo.toml` metadata.
 //!
@@ -5,7 +6,6 @@
 use std::fs;
 use std::io;
 use std::path::Path;
-use toml;
 
 #[macro_use]
 extern crate serde_derive;
@@ -24,6 +24,7 @@ mod afs;
 mod error;
 pub use crate::afs::*;
 pub use crate::error::Error;
+use std::str::FromStr;
 
 /// The top-level `Cargo.toml` structure
 ///
@@ -102,13 +103,17 @@ impl Manifest<Value> {
     pub fn from_path(cargo_toml_path: impl AsRef<Path>) -> Result<Self, Error> {
         Self::from_path_with_metadata(cargo_toml_path)
     }
+}
+
+impl FromStr for Manifest<Value> {
+    type Err = Error;
 
     /// Parse contents of a `Cargo.toml` file loaded as a string
     ///
     /// Note: this is **not** a file name, but file's content. See `from_path`.
     ///
     /// It does not call `complete_from_path`, so may be missing implicit data.
-    pub fn from_str(cargo_toml_content: &str) -> Result<Self, Error> {
+    fn from_str(cargo_toml_content: &str) -> Result<Self, Self::Err> {
         Self::from_slice_with_metadata(cargo_toml_content.as_bytes())
     }
 }
@@ -148,7 +153,9 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// This scans the disk to make the data in the manifest as complete as possible.
     pub fn complete_from_path(&mut self, path: &Path) -> Result<(), Error> {
-        let manifest_dir = path.parent().ok_or_else(|| io::Error::new(io::ErrorKind::Other, "bad path"))?;
+        let manifest_dir = path
+            .parent()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "bad path"))?;
         self.complete_from_abstract_filesystem(Filesystem::new(manifest_dir))
     }
 
@@ -373,7 +380,7 @@ impl Dependency {
     pub fn req(&self) -> &str {
         match *self {
             Dependency::Simple(ref v) => v,
-            Dependency::Detailed(ref d) => d.version.as_ref().map(|s| s.as_str()).unwrap_or("*"),
+            Dependency::Detailed(ref d) => d.version.as_deref().unwrap_or("*"),
         }
     }
 
@@ -393,13 +400,13 @@ impl Dependency {
     pub fn package(&self) -> Option<&str> {
         match *self {
             Dependency::Simple(_) => None,
-            Dependency::Detailed(ref d) => d.package.as_ref().map(|p| p.as_str()),
+            Dependency::Detailed(ref d) => d.package.as_deref(),
         }
     }
 
     // Git URL of this dependency, if any
     pub fn git(&self) -> Option<&str> {
-        self.detail().and_then(|d| d.git.as_ref().map(|p| p.as_str()))
+        self.detail().and_then(|d| d.git.as_deref())
     }
 
     // `true` if it's an usual crates.io dependency,
@@ -409,7 +416,13 @@ impl Dependency {
             Dependency::Simple(_) => true,
             Dependency::Detailed(ref d) => {
                 // TODO: allow registry to be set to crates.io explicitly?
-                d.path.is_none() && d.registry.is_none() && d.registry_index.is_none() && d.git.is_none() && d.tag.is_none() && d.branch.is_none() && d.rev.is_none()
+                d.path.is_none()
+                    && d.registry.is_none()
+                    && d.registry_index.is_none()
+                    && d.git.is_none()
+                    && d.tag.is_none()
+                    && d.branch.is_none()
+                    && d.rev.is_none()
             }
         }
     }
@@ -499,7 +512,7 @@ impl PartialEq<Publish> for bool {
     fn eq(&self, p: &Publish) -> bool {
         match *p {
             Publish::Flag(flag) => flag == *self,
-            Publish::Registry(ref reg) => !reg.is_empty() == *self,
+            Publish::Registry(ref reg) => reg.is_empty() != *self,
         }
     }
 }
@@ -526,8 +539,9 @@ fn default_master() -> String {
 }
 
 fn ok_or_default<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-    where T: Deserialize<'de> + Default,
-          D: Deserializer<'de>
+where
+    T: Deserialize<'de> + Default,
+    D: Deserializer<'de>,
 {
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }
