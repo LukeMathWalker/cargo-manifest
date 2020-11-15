@@ -7,7 +7,8 @@ fn own() {
     let m = Manifest::from_slice(&read("Cargo.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
     assert_eq!("cargo_toml", package.name);
-    let m = Manifest::<toml::Value>::from_slice_with_metadata(&read("Cargo.toml").unwrap()).unwrap();
+    let m =
+        Manifest::<toml::Value>::from_slice_with_metadata(&read("Cargo.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
     assert_eq!("cargo_toml", package.name);
     assert_eq!(lib::Edition::E2018, package.edition);
@@ -18,7 +19,16 @@ fn opt_level() {
     let m = Manifest::from_slice(&read("tests/opt_level.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
     assert_eq!("byteorder", package.name);
-    assert_eq!(3, m.profile.bench.unwrap().opt_level.unwrap().as_integer().unwrap());
+    assert_eq!(
+        3,
+        m.profile
+            .bench
+            .unwrap()
+            .opt_level
+            .unwrap()
+            .as_integer()
+            .unwrap()
+    );
     assert_eq!(false, m.lib.unwrap().bench);
     assert_eq!(lib::Edition::E2015, package.edition);
     assert_eq!(1, m.patch.len());
@@ -52,10 +62,13 @@ fn autolib() {
 
 #[test]
 fn legacy() {
-    let m = Manifest::from_slice(br#"[project]
+    let m = Manifest::from_slice(
+        br#"[project]
                 name = "foo"
                 version = "1"
-                "#).expect("parse old");
+                "#,
+    )
+    .expect("parse old");
     let package = m.package.as_ref().unwrap();
     assert_eq!("foo", package.name);
     let m = Manifest::from_str("name = \"foo\"\nversion=\"1\"").expect("parse bare");

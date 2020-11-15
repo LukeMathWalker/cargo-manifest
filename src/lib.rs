@@ -5,7 +5,6 @@
 use std::fs;
 use std::io;
 use std::path::Path;
-use toml;
 
 #[macro_use]
 extern crate serde_derive;
@@ -148,7 +147,9 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// This scans the disk to make the data in the manifest as complete as possible.
     pub fn complete_from_path(&mut self, path: &Path) -> Result<(), Error> {
-        let manifest_dir = path.parent().ok_or_else(|| io::Error::new(io::ErrorKind::Other, "bad path"))?;
+        let manifest_dir = path
+            .parent()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "bad path"))?;
         self.complete_from_abstract_filesystem(Filesystem::new(manifest_dir))
     }
 
@@ -157,7 +158,10 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// You can provide any implementation of directory scan, which doesn't have to
     /// be reading straight from disk (might scan a tarball or a git repo, for example).
-    pub fn complete_from_abstract_filesystem(&mut self, fs: impl AbstractFilesystem) -> Result<(), Error> {
+    pub fn complete_from_abstract_filesystem(
+        &mut self,
+        fs: impl AbstractFilesystem,
+    ) -> Result<(), Error> {
         if let Some(ref package) = self.package {
             let src = fs.file_names_in("src")?;
             if let Some(ref mut lib) = self.lib {
@@ -392,7 +396,8 @@ impl Dependency {
 
     // Git URL of this dependency, if any
     pub fn git(&self) -> Option<&str> {
-        self.detail().and_then(|d| d.git.as_ref().map(|p| p.as_str()))
+        self.detail()
+            .and_then(|d| d.git.as_ref().map(|p| p.as_str()))
     }
 
     // `true` if it's an usual crates.io dependency,
@@ -402,7 +407,13 @@ impl Dependency {
             Dependency::Simple(_) => true,
             Dependency::Detailed(ref d) => {
                 // TODO: allow registry to be set to crates.io explicitly?
-                d.path.is_none() && d.registry.is_none() && d.registry_index.is_none() && d.git.is_none() && d.tag.is_none() && d.branch.is_none() && d.rev.is_none()
+                d.path.is_none()
+                    && d.registry.is_none()
+                    && d.registry_index.is_none()
+                    && d.git.is_none()
+                    && d.tag.is_none()
+                    && d.branch.is_none()
+                    && d.rev.is_none()
             }
         }
     }
@@ -519,8 +530,9 @@ fn default_master() -> String {
 }
 
 fn ok_or_default<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-    where T: Deserialize<'de> + Default,
-          D: Deserializer<'de>
+where
+    T: Deserialize<'de> + Default,
+    D: Deserializer<'de>,
 {
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }

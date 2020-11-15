@@ -19,11 +19,12 @@ impl<'a> Filesystem<'a> {
 
 impl<'a> AbstractFilesystem for Filesystem<'a> {
     fn file_names_in(&self, rel_path: &str) -> io::Result<HashSet<Box<str>>> {
-        Ok(read_dir(self.path.join(rel_path))?.filter_map(|entry| {
-            entry.ok().map(|e| {
-                e.file_name().to_string_lossy().to_string().into_boxed_str()
+        Ok(read_dir(self.path.join(rel_path))?
+            .filter_map(|entry| {
+                entry
+                    .ok()
+                    .map(|e| e.file_name().to_string_lossy().to_string().into_boxed_str())
             })
-        })
-        .collect())
+            .collect())
     }
 }
