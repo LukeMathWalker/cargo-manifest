@@ -402,8 +402,7 @@ impl Dependency {
 
     // Git URL of this dependency, if any
     pub fn git(&self) -> Option<&str> {
-        self.detail()
-            .and_then(|d| d.git.as_deref())
+        self.detail().and_then(|d| d.git.as_deref())
     }
 
     // `true` if it's an usual crates.io dependency,
