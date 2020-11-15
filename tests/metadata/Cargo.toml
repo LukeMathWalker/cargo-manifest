@@ -1,0 +1,6 @@
+[package]
+name = "metadata"
+version = "0.1.0"
+
+[lib]
+path = "lib.rs"

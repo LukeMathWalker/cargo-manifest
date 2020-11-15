@@ -157,9 +157,16 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// You can provide any implementation of directory scan, which doesn't have to
     /// be reading straight from disk (might scan a tarball or a git repo, for example).
-    pub fn complete_from_abstract_filesystem(&mut self, fs: impl AbstractFilesystem) -> Result<(), Error> {
+    pub fn complete_from_abstract_filesystem(
+        &mut self,
+        fs: impl AbstractFilesystem,
+    ) -> Result<(), Error> {
         if let Some(ref package) = self.package {
-            let src = fs.file_names_in("src")?;
+            let src = match fs.file_names_in("src") {
+                Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(Default::default()),
+                result => result,
+            }?;
+
             if let Some(ref mut lib) = self.lib {
                 lib.required_features.clear(); // not applicable
             } else if src.contains("lib.rs") {
