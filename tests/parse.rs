@@ -88,3 +88,61 @@ fn legacy() {
     let package = m.package.as_ref().unwrap();
     assert_eq!("foo", package.name);
 }
+
+// -- Multi-word identifiers can be specified using both snake_case and kebab-case --
+
+/// This test ensures that the snake_case variant is handled correctly for `default-features`
+#[test]
+fn default_features_casing() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "foo"
+version = "1"
+
+[dependencies]
+rusoto_core = { version = "0.45.0", default_features=false, features=["rustls"] }
+"#,
+    )
+    .unwrap();
+
+    let deps = m.dependencies.as_ref().unwrap();
+    let rusoto_core = deps.get("rusoto_core").unwrap().detail().unwrap();
+    assert!(rusoto_core.default_features.is_some());
+}
+
+/// This test ensures that the snake_case variant is handled correctly for `build-dependencies`
+#[test]
+fn build_dependencies_casing() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "foo"
+version = "1"
+
+[build_dependencies]
+lazy_static = "1.4.0"
+"#,
+    )
+    .unwrap();
+
+    assert!(m.build_dependencies.is_some());
+}
+
+/// This test ensures that the snake_case variant is handled correctly for `dev-dependencies`
+#[test]
+fn dev_dependencies_casing() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "foo"
+version = "1"
+
+[dev_dependencies]
+lazy_static = "1.4.0"
+"#,
+    )
+    .unwrap();
+
+    assert!(m.dev_dependencies.is_some());
+}

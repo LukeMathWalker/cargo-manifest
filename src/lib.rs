@@ -39,9 +39,9 @@ pub struct Manifest<Metadata = Value> {
     pub workspace: Option<Workspace>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<DepsSet>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "dev_dependencies")]
     pub dev_dependencies: Option<DepsSet>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "build_dependencies")]
     pub build_dependencies: Option<DepsSet>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target: Option<TargetDepsSet>,
@@ -78,7 +78,7 @@ pub struct Workspace {
     #[serde(default)]
     pub members: Vec<String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", rename = "default_members")]
     pub default_members: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -253,14 +253,18 @@ pub struct Profiles {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Profile {
+    #[serde(alias = "opt_level")]
     pub opt_level: Option<Value>,
     pub debug: Option<Value>,
     pub rpath: Option<bool>,
     pub lto: Option<Value>,
+    #[serde(alias = "debug_assertions")]
     pub debug_assertions: Option<bool>,
+    #[serde(alias = "codegen_units")]
     pub codegen_units: Option<u16>,
     pub panic: Option<String>,
     pub incremental: Option<bool>,
+    #[serde(rename = "overflow_checks")]
     pub overflow_checks: Option<bool>,
 }
 
@@ -304,7 +308,7 @@ pub struct Product {
 
     /// If the product is meant to be a "macros 1.1" procedural macro, this field must
     /// be set to true.
-    #[serde(default)]
+    #[serde(default, rename = "proc_macro")]
     pub proc_macro: bool,
 
     /// If set to false, `cargo test` will omit the `--test` flag to rustc, which
@@ -324,11 +328,11 @@ pub struct Product {
     /// If any of the required features are not selected, the product will be skipped.
     /// This is only relevant for the `[[bin]]`, `[[bench]]`, `[[test]]`, and `[[example]]` sections,
     /// it has no effect on `[lib]`.
-    #[serde(default)]
+    #[serde(default, rename = "required_features")]
     pub required_features: Vec<String>,
 
     /// The available options are "dylib", "rlib", "staticlib", "cdylib", and "proc-macro".
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", rename = "crate_type")]
     pub crate_type: Option<Vec<String>>,
 }
 
@@ -356,9 +360,9 @@ impl Default for Product {
 pub struct Target {
     #[serde(default)]
     pub dependencies: DepsSet,
-    #[serde(default)]
+    #[serde(default, rename = "dev_dependencies")]
     pub dev_dependencies: DepsSet,
-    #[serde(default)]
+    #[serde(default, rename = "build_dependencies")]
     pub build_dependencies: DepsSet,
 }
 
@@ -433,6 +437,7 @@ impl Dependency {
 pub struct DependencyDetail {
     pub version: Option<String>,
     pub registry: Option<String>,
+    #[serde(alias = "registry_index")]
     pub registry_index: Option<String>,
     pub path: Option<String>,
     pub git: Option<String>,
@@ -443,6 +448,7 @@ pub struct DependencyDetail {
     pub features: Vec<String>,
     #[serde(default)]
     pub optional: bool,
+    #[serde(default, alias = "default_features")]
     pub default_features: Option<bool>,
     pub package: Option<String>,
 }
@@ -531,6 +537,7 @@ pub struct Badge {
     pub branch: String,
     pub service: Option<String>,
     pub id: Option<String>,
+    #[serde(alias = "project_name")]
     pub project_name: Option<String>,
 }
 
