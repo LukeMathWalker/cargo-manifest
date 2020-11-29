@@ -39,7 +39,7 @@ pub struct Manifest<Metadata = Value> {
     pub workspace: Option<Workspace>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<DepsSet>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "dev_dependencies")]
     pub dev_dependencies: Option<DepsSet>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub build_dependencies: Option<DepsSet>,
