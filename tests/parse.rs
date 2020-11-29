@@ -107,7 +107,7 @@ rusoto_core = { version = "0.45.0", default_features=false, features=["rustls"] 
     .unwrap();
 
     let deps = m.dependencies.as_ref().unwrap();
-    let rusoto_core = deps.get("rusoto-core").unwrap().detail().unwrap();
+    let rusoto_core = deps.get("rusoto_core").unwrap().detail().unwrap();
     assert!(rusoto_core.default_features.is_some());
 }
 

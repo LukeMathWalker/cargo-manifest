@@ -443,6 +443,7 @@ pub struct DependencyDetail {
     pub features: Vec<String>,
     #[serde(default)]
     pub optional: bool,
+    #[serde(default, alias = "default_features")]
     pub default_features: Option<bool>,
     pub package: Option<String>,
 }
