@@ -148,8 +148,8 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         Ok(manifest)
     }
 
-    /// `Cargo.toml` doesn't contain explicit information about `[lib]` and `[[bin]]`,
-    /// which are inferred based on files on disk.
+    /// `Cargo.toml` may not contain explicit information about `[lib]`, `[[bin]]` and
+    /// `[package].build`, which are inferred based on files on disk.
     ///
     /// This scans the disk to make the data in the manifest as complete as possible.
     pub fn complete_from_path(&mut self, path: &Path) -> Result<(), Error> {
@@ -159,8 +159,8 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         self.complete_from_abstract_filesystem(Filesystem::new(manifest_dir))
     }
 
-    /// `Cargo.toml` doesn't contain explicit information about `[lib]` and `[[bin]]`,
-    /// which are inferred based on files on disk.
+    /// `Cargo.toml` may not contain explicit information about `[lib]`, `[[bin]]` and
+    /// `[package].build`, which are inferred based on files on disk.
     ///
     /// You can provide any implementation of directory scan, which doesn't have to
     /// be reading straight from disk (might scan a tarball or a git repo, for example).
@@ -168,7 +168,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         &mut self,
         fs: impl AbstractFilesystem,
     ) -> Result<(), Error> {
-        if let Some(ref package) = self.package {
+        if let Some(ref mut package) = self.package {
             let src = match fs.file_names_in("src") {
                 Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(Default::default()),
                 result => result,
@@ -187,7 +187,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             }
 
             if package.autobins && self.bin.is_none() {
-                let mut bin = self.autoset("src/bin", &fs);
+                let mut bin = autoset(package, "src/bin", &fs);
                 if src.contains("main.rs") {
                     bin.push(Product {
                         name: Some(package.name.clone()),
@@ -199,46 +199,52 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 self.bin = Some(bin);
             }
             if package.autoexamples && self.example.is_none() {
-                self.example = Some(self.autoset("examples", &fs));
+                self.example = Some(autoset(package, "examples", &fs));
             }
             if package.autotests && self.test.is_none() {
-                self.test = Some(self.autoset("tests", &fs));
+                self.test = Some(autoset(package, "tests", &fs));
             }
             if package.autobenches && self.bench.is_none() {
-                self.bench = Some(self.autoset("benches", &fs));
+                self.bench = Some(autoset(package, "benches", &fs));
+            }
+
+            if package.build.is_none()
+                && fs
+                    .file_names_in(".")
+                    .map_or(false, |dir| dir.contains("build.rs"))
+            {
+                package.build = Some(Value::String("build.rs".to_string()));
             }
         }
         Ok(())
     }
+}
 
-    fn autoset(&self, dir: &str, fs: &dyn AbstractFilesystem) -> Vec<Product> {
-        let mut out = Vec::new();
-        if let Some(ref package) = self.package {
-            if let Ok(bins) = fs.file_names_in(dir) {
-                for name in bins {
-                    let rel_path = format!("{}/{}", dir, name);
-                    if name.ends_with(".rs") {
-                        out.push(Product {
-                            name: Some(name.trim_end_matches(".rs").into()),
-                            path: Some(rel_path),
-                            edition: Some(package.edition),
-                            ..Product::default()
-                        })
-                    } else if let Ok(sub) = fs.file_names_in(&rel_path) {
-                        if sub.contains("main.rs") {
-                            out.push(Product {
-                                name: Some(name.into()),
-                                path: Some(rel_path + "/main.rs"),
-                                edition: Some(package.edition),
-                                ..Product::default()
-                            })
-                        }
-                    }
+fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> Vec<Product> {
+    let mut out = Vec::new();
+    if let Ok(bins) = fs.file_names_in(dir) {
+        for name in bins {
+            let rel_path = format!("{}/{}", dir, name);
+            if name.ends_with(".rs") {
+                out.push(Product {
+                    name: Some(name.trim_end_matches(".rs").into()),
+                    path: Some(rel_path),
+                    edition: Some(package.edition),
+                    ..Product::default()
+                })
+            } else if let Ok(sub) = fs.file_names_in(&rel_path) {
+                if sub.contains("main.rs") {
+                    out.push(Product {
+                        name: Some(name.into()),
+                        path: Some(rel_path + "/main.rs"),
+                        edition: Some(package.edition),
+                        ..Product::default()
+                    })
                 }
             }
         }
-        out
     }
+    out
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]

@@ -1,6 +1,7 @@
 [package]
 name = "metadata"
 version = "0.1.0"
+build = "foobar.rs"
 
 [lib]
 path = "lib.rs"
