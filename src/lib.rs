@@ -148,8 +148,8 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         Ok(manifest)
     }
 
-    /// `Cargo.toml` doesn't contain explicit information about `[lib]` and `[[bin]]`,
-    /// which are inferred based on files on disk.
+    /// `Cargo.toml` may not contain explicit information about `[lib]`, `[[bin]]` and
+    /// `[package].build`, which are inferred based on files on disk.
     ///
     /// This scans the disk to make the data in the manifest as complete as possible.
     pub fn complete_from_path(&mut self, path: &Path) -> Result<(), Error> {
@@ -159,8 +159,8 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         self.complete_from_abstract_filesystem(Filesystem::new(manifest_dir))
     }
 
-    /// `Cargo.toml` doesn't contain explicit information about `[lib]` and `[[bin]]`,
-    /// which are inferred based on files on disk.
+    /// `Cargo.toml` may not contain explicit information about `[lib]`, `[[bin]]` and
+    /// `[package].build`, which are inferred based on files on disk.
     ///
     /// You can provide any implementation of directory scan, which doesn't have to
     /// be reading straight from disk (might scan a tarball or a git repo, for example).
@@ -168,7 +168,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         &mut self,
         fs: impl AbstractFilesystem,
     ) -> Result<(), Error> {
-        if let Some(ref package) = self.package {
+        if let Some(ref mut package) = self.package {
             let src = match fs.file_names_in("src") {
                 Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(Default::default()),
                 result => result,
@@ -206,6 +206,14 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             }
             if package.autobenches && self.bench.is_none() {
                 self.bench = Some(autoset(package, "benches", &fs));
+            }
+
+            if package.build.is_none()
+                && fs
+                    .file_names_in(".")
+                    .map_or(false, |dir| dir.contains("build.rs"))
+            {
+                package.build = Some(Value::String("build.rs".to_string()));
             }
         }
         Ok(())
