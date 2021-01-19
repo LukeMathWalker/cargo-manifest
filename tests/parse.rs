@@ -2,7 +2,6 @@ use cargo_manifest as lib;
 use cargo_manifest::Manifest;
 use std::fs::read;
 use std::str::FromStr;
-use toml;
 
 #[test]
 fn own() {
@@ -46,10 +45,7 @@ fn autobin() {
     assert!(package.autobins);
     assert!(m.lib.is_none());
     assert_eq!(1, m.bin.as_ref().unwrap().len());
-    assert_eq!(
-        Some("auto-bin"),
-        m.bin.unwrap()[0].name.as_ref().map(|s| s.as_str())
-    );
+    assert_eq!(Some("auto-bin"), m.bin.unwrap()[0].name.as_deref());
 }
 
 #[test]
