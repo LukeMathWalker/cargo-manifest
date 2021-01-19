@@ -74,6 +74,22 @@ fn metadata() {
 }
 
 #[test]
+fn readme() {
+    let base = "[package]\nname = \"foo\"\nversion = \"1\"";
+
+    let m = Manifest::from_str(&format!("{}\nreadme = \"hello.md\"", base)).unwrap();
+    let readme = m.package.unwrap().readme.unwrap();
+    assert_eq!(lib::StringOrBool::String("hello.md".to_string()), readme);
+
+    let m = Manifest::from_str(&format!("{}\nreadme = true", base)).unwrap();
+    let readme = m.package.unwrap().readme.unwrap();
+    assert_eq!(lib::StringOrBool::Bool(true), readme);
+
+    let m = Manifest::from_str(&format!("{}\nreadme = 1", base));
+    assert!(m.is_err());
+}
+
+#[test]
 fn legacy() {
     let m = Manifest::from_slice(
         br#"[project]

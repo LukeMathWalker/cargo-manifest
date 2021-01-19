@@ -475,7 +475,7 @@ pub struct Package<Metadata = Value> {
     pub homepage: Option<String>,
     pub documentation: Option<String>,
     /// This points to a file under the package root (relative to this `Cargo.toml`).
-    pub readme: Option<String>,
+    pub readme: Option<StringOrBool>,
     #[serde(default)]
     pub keywords: Vec<String>,
     #[serde(default)]
@@ -499,6 +499,13 @@ pub struct Package<Metadata = Value> {
     pub autobenches: bool,
     #[serde(default)]
     pub publish: Publish,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(untagged)]
+pub enum StringOrBool {
+    String(String),
+    Bool(bool),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
