@@ -166,3 +166,37 @@ lazy_static = "1.4.0"
 
     assert!(m.dev_dependencies.is_some());
 }
+
+/// This test ensures that both the kebap-case and the snake_case variant is handled correctly for `proc-macro`
+#[test]
+fn proc_macro_casing() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "foo"
+version = "1"
+
+[lib]
+proc-macro = true
+"#,
+    )
+    .unwrap();
+
+    let lib = m.lib.as_ref().unwrap();
+    assert!(lib.proc_macro);
+
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "foo"
+version = "1"
+
+[lib]
+proc_macro = true
+"#,
+    )
+    .unwrap();
+
+    let lib = m.lib.as_ref().unwrap();
+    assert!(lib.proc_macro);
+}

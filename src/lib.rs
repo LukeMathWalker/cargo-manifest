@@ -78,7 +78,7 @@ pub struct Workspace {
     #[serde(default)]
     pub members: Vec<String>,
 
-    #[serde(skip_serializing_if = "Option::is_none", rename = "default_members")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "default_members")]
     pub default_members: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -270,7 +270,7 @@ pub struct Profile {
     pub codegen_units: Option<u16>,
     pub panic: Option<String>,
     pub incremental: Option<bool>,
-    #[serde(rename = "overflow_checks")]
+    #[serde(alias = "overflow_checks")]
     pub overflow_checks: Option<bool>,
 }
 
@@ -314,7 +314,7 @@ pub struct Product {
 
     /// If the product is meant to be a "macros 1.1" procedural macro, this field must
     /// be set to true.
-    #[serde(default, rename = "proc_macro")]
+    #[serde(default, alias = "proc_macro")]
     pub proc_macro: bool,
 
     /// If set to false, `cargo test` will omit the `--test` flag to rustc, which
@@ -334,11 +334,11 @@ pub struct Product {
     /// If any of the required features are not selected, the product will be skipped.
     /// This is only relevant for the `[[bin]]`, `[[bench]]`, `[[test]]`, and `[[example]]` sections,
     /// it has no effect on `[lib]`.
-    #[serde(default, rename = "required_features")]
+    #[serde(default, alias = "required_features")]
     pub required_features: Vec<String>,
 
     /// The available options are "dylib", "rlib", "staticlib", "cdylib", and "proc-macro".
-    #[serde(skip_serializing_if = "Option::is_none", rename = "crate_type")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "crate_type")]
     pub crate_type: Option<Vec<String>>,
 }
 
@@ -366,9 +366,9 @@ impl Default for Product {
 pub struct Target {
     #[serde(default)]
     pub dependencies: DepsSet,
-    #[serde(default, rename = "dev_dependencies")]
+    #[serde(default, alias = "dev_dependencies")]
     pub dev_dependencies: DepsSet,
-    #[serde(default, rename = "build_dependencies")]
+    #[serde(default, alias = "build_dependencies")]
     pub build_dependencies: DepsSet,
 }
 
