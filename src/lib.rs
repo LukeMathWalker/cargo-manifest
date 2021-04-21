@@ -558,6 +558,7 @@ fn default_master() -> String {
     "master".to_string()
 }
 
+#[allow(clippy::unnecessary_wraps)]
 fn ok_or_default<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where
     T: Deserialize<'de> + Default,
