@@ -272,6 +272,10 @@ pub struct Profile {
     pub incremental: Option<bool>,
     #[serde(alias = "overflow_checks")]
     pub overflow_checks: Option<bool>,
+    #[serde(default)]
+    pub package: BTreeMap<String, Value>,
+    /// profile overrides
+    pub build_override: Option<Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -495,6 +499,9 @@ pub struct Package<Metadata = Value> {
     pub repository: Option<String>,
     pub metadata: Option<Metadata>,
 
+    /// The default binary to run by cargo run.
+    pub default_run: Option<String>,
+
     #[serde(default = "default_true")]
     pub autobins: bool,
     #[serde(default = "default_true")]
@@ -505,6 +512,7 @@ pub struct Package<Metadata = Value> {
     pub autobenches: bool,
     #[serde(default)]
     pub publish: Publish,
+    pub resolver: Option<Resolver>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
@@ -646,10 +654,26 @@ pub enum Edition {
     E2015,
     #[serde(rename = "2018")]
     E2018,
+    #[serde(rename = "2021")]
+    E2021,
 }
 
 impl Default for Edition {
     fn default() -> Self {
         Edition::E2015
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
+pub enum Resolver {
+    #[serde(rename = "1")]
+    V1,
+    #[serde(rename = "2")]
+    V2,
+}
+
+impl Default for Resolver {
+    fn default() -> Self {
+        Self::V1
     }
 }
