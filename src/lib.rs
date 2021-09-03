@@ -83,6 +83,9 @@ pub struct Workspace {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub exclude: Option<Vec<String>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resolver: Option<Resolver>,
 }
 
 fn default_true() -> bool {
@@ -512,6 +515,7 @@ pub struct Package<Metadata = Value> {
     pub autobenches: bool,
     #[serde(default)]
     pub publish: Publish,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub resolver: Option<Resolver>,
 }
 
