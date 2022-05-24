@@ -257,6 +257,9 @@ pub struct Profiles {
     pub test: Option<Profile>,
     pub bench: Option<Profile>,
     pub doc: Option<Profile>,
+
+    #[serde(flatten)]
+    pub custom: BTreeMap<String, Profile>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
