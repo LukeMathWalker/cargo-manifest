@@ -181,7 +181,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 lib.required_features.clear(); // not applicable
             } else if src.contains("lib.rs") {
                 self.lib = Some(Product {
-                    name: Some(package.name.replace("-", "_")),
+                    name: Some(package.name.replace('-', "_")),
                     path: Some("src/lib.rs".to_string()),
                     edition: Some(package.edition),
                     crate_type: Some(vec!["rlib".to_string()]),
