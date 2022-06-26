@@ -17,6 +17,9 @@ publish = false
 [profile.bench]
 opt-level = 3
 
+[profile.my-custom]
+opt-level = 2
+
 [lib]
 name = "byteorder"
 bench = false

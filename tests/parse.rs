@@ -20,11 +20,23 @@ fn opt_level() {
     let m = Manifest::from_slice(&read("tests/opt_level.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
     assert_eq!("byteorder", package.name);
+    let profiles = m.profile.unwrap();
     assert_eq!(
         3,
-        m.profile
-            .unwrap()
+        profiles
             .bench
+            .unwrap()
+            .opt_level
+            .unwrap()
+            .as_integer()
+            .unwrap()
+    );
+    assert_eq!(
+        2,
+        profiles
+            .custom
+            .get("my-custom")
+            .cloned()
             .unwrap()
             .opt_level
             .unwrap()
