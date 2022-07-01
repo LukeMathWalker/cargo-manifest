@@ -269,6 +269,7 @@ pub struct Profile {
     pub opt_level: Option<Value>,
     pub debug: Option<Value>,
     pub rpath: Option<bool>,
+    pub inherits: Option<String>,
     pub lto: Option<Value>,
     #[serde(alias = "debug_assertions")]
     pub debug_assertions: Option<bool>,
