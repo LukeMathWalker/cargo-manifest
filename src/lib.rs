@@ -86,6 +86,9 @@ pub struct Workspace {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolver: Option<Resolver>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dependencies: Option<DepsSet>,
 }
 
 fn default_true() -> bool {
@@ -465,6 +468,8 @@ pub struct DependencyDetail {
     pub features: Vec<String>,
     #[serde(default)]
     pub optional: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub workspace: Option<bool>,
     #[serde(default, alias = "default_features")]
     pub default_features: Option<bool>,
     pub package: Option<String>,
