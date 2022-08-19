@@ -72,7 +72,7 @@ pub struct Manifest<Metadata = Value> {
     pub badges: Option<Badges>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct Workspace {
     #[serde(default)]
@@ -288,7 +288,7 @@ pub struct Profile {
     pub build_override: Option<Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 /// Cargo uses the term "target" for both "target platform" and "build target" (the thing to build),
 /// which makes it ambigous.
@@ -375,7 +375,7 @@ impl Default for Product {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Target {
     #[serde(default)]
@@ -386,7 +386,7 @@ pub struct Target {
     pub build_dependencies: DepsSet,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Dependency {
     Simple(String),
@@ -452,7 +452,7 @@ impl Dependency {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct DependencyDetail {
     pub version: Option<String>,
@@ -563,7 +563,7 @@ impl PartialEq<bool> for Publish {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badge {
     pub repository: String,
@@ -588,7 +588,7 @@ where
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badges {
     /// Appveyor: `repository` is required. `branch` is optional; default is `master`
