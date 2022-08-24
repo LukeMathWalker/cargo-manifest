@@ -419,7 +419,7 @@ impl Dependency {
     pub fn req_features(&self) -> &[String] {
         match *self {
             Dependency::Simple(_) => &[],
-            Dependency::Detailed(ref d) => d.features.as_ref().map(|v| v.as_slice()).unwrap_or(&[]),
+            Dependency::Detailed(ref d) => d.features.as_deref().unwrap_or(&[]),
         }
     }
 
