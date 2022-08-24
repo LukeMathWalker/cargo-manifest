@@ -12,7 +12,7 @@ fn own() {
         Manifest::<toml::Value>::from_slice_with_metadata(&read("Cargo.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
     assert_eq!("cargo-manifest", package.name);
-    assert_eq!(lib::Edition::E2018, package.edition);
+    assert_eq!(lib::Edition::E2021, package.edition);
 }
 
 #[test]
@@ -214,4 +214,34 @@ proc_macro = true
 
     let lib = m.lib.as_ref().unwrap();
     assert!(lib.proc_macro);
+}
+
+/// This test ensures that we correctly handle crate dependencies that are deferred to the top-level workspace.
+#[test]
+fn workspace_dependency() {
+    Manifest::from_str(
+        r#"
+[workspace]
+members = ["core"]
+
+[workspace.dependencies]
+chrono = "0.4"
+serde = { version = "1.0", features = [ "derive" ] }
+"#,
+    )
+    .unwrap();
+
+    Manifest::from_str(
+        r#"
+[package]
+name = "core"
+version = "0.1.0"
+
+[dependencies]
+chrono.workspace = true
+config = "0.13"
+tokio = { workspace = true, features = [ "rt-multi-thread" ] }
+"#,
+    )
+    .unwrap();
 }
