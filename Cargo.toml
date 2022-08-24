@@ -1,5 +1,5 @@
 [package]
-edition = "2018"
+edition = "2021"
 name = "cargo-manifest"
 version = "0.2.8"
 authors = ["Kornel <kornel@geekhood.net>, Luca Palmieri <rust@lpalmieri.com>"]
@@ -16,6 +16,5 @@ name = "cargo_manifest"
 path = "src/lib.rs"
 
 [dependencies]
-serde = "1.0.114"
-serde_derive = "1.0.114"
+serde = { version = "1.0.114", features = ["derive"] }
 toml = { version = "0.5.6", features = ["preserve_order"] }
