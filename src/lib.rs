@@ -80,7 +80,7 @@ pub struct Manifest<Metadata = Value> {
     pub badges: Option<Badges>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct Workspace {
     #[serde(default)]
@@ -94,6 +94,9 @@ pub struct Workspace {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolver: Option<Resolver>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dependencies: Option<DepsSet>,
 }
 
 fn default_true() -> bool {
@@ -293,7 +296,7 @@ pub struct Profile {
     pub build_override: Option<Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 /// Cargo uses the term "target" for both "target platform" and "build target" (the thing to build),
 /// which makes it ambigous.
@@ -380,7 +383,7 @@ impl Default for Product {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Target {
     #[serde(default)]
@@ -391,7 +394,7 @@ pub struct Target {
     pub build_dependencies: DepsSet,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Dependency {
     Simple(String),
@@ -457,7 +460,7 @@ impl Dependency {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct DependencyDetail {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -482,6 +485,8 @@ pub struct DependencyDetail {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub optional: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub workspace: Option<bool>,
     #[serde(default, alias = "default_features")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_features: Option<bool>,
@@ -577,7 +582,7 @@ impl PartialEq<bool> for Publish {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badge {
     pub repository: String,
@@ -602,7 +607,7 @@ where
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Badges {
     /// Appveyor: `repository` is required. `branch` is optional; default is `master`
