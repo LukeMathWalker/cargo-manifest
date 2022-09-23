@@ -3,15 +3,12 @@
 //! to load and inspect `Cargo.toml` metadata.
 //!
 //! See `Manifest::from_slice`.
-use std::fs;
-use std::io;
-use std::path::Path;
-
-#[macro_use]
-extern crate serde_derive;
 use serde::Deserializer;
 use serde::{Deserialize, Serialize, Serializer};
 use std::collections::BTreeMap;
+use std::fs;
+use std::io;
+use std::path::Path;
 
 pub use toml::Value;
 
@@ -38,11 +35,22 @@ pub struct Manifest<Metadata = Value> {
     pub package: Option<Package<Metadata>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub workspace: Option<Workspace>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_optional_tables_last"
+    )]
     pub dependencies: Option<DepsSet>,
-    #[serde(skip_serializing_if = "Option::is_none", alias = "dev_dependencies")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        alias = "dev_dependencies",
+        serialize_with = "serialize_optional_tables_last"
+    )]
     pub dev_dependencies: Option<DepsSet>,
-    #[serde(skip_serializing_if = "Option::is_none", alias = "build_dependencies")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        alias = "build_dependencies",
+        serialize_with = "serialize_optional_tables_last"
+    )]
     pub build_dependencies: Option<DepsSet>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target: Option<TargetDepsSet>,
@@ -473,12 +481,12 @@ impl Dependency {
     pub fn req_features(&self) -> &[String] {
         match *self {
             Dependency::Simple(_) => &[],
-            Dependency::Detailed(ref d) => &d.features,
+            Dependency::Detailed(ref d) => d.features.as_deref().unwrap_or(&[]),
         }
     }
 
     pub fn optional(&self) -> bool {
-        self.detail().map_or(false, |d| d.optional)
+        self.detail().map_or(false, |d| d.optional.unwrap_or(false))
     }
 
     // `Some` if it overrides the package name.
@@ -517,23 +525,34 @@ impl Dependency {
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct DependencyDetail {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub registry: Option<String>,
     #[serde(alias = "registry_index")]
     pub registry_index: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub git: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub branch: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tag: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub rev: Option<String>,
     #[serde(default)]
-    pub features: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub features: Option<Vec<String>>,
     #[serde(default)]
-    pub optional: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub optional: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub workspace: Option<bool>,
     #[serde(default, alias = "default_features")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub default_features: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<String>,
 }
 
@@ -544,7 +563,7 @@ pub struct DependencyDetail {
 ///
 /// See [`cargo`'s documentation](https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#workspaces)
 /// for more details.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Eq)]
 #[serde(untagged)]
 pub enum MaybeInherited<T> {
     Inherited { workspace: True },
@@ -558,7 +577,7 @@ impl<T> MaybeInherited<T> {
 }
 
 /// A type-level representation of a `true` boolean value.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[doc(hidden)]
 pub struct True;
 
@@ -819,5 +838,23 @@ pub enum Resolver {
 impl Default for Resolver {
     fn default() -> Self {
         Self::V1
+    }
+}
+
+fn serialize_optional_tables_last<'a, I, K, V, S>(
+    data: &'a Option<I>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    &'a I: IntoIterator<Item = (K, V)>,
+    I: Serialize,
+    K: Serialize,
+    V: Serialize,
+    S: Serializer,
+{
+    if let Some(d) = data {
+        toml::ser::tables_last(d, serializer)
+    } else {
+        None::<I>.serialize(serializer)
     }
 }

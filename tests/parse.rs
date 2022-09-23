@@ -13,7 +13,7 @@ fn own() {
     let package = m.package.as_ref().unwrap();
     assert_eq!("cargo-manifest", package.name);
     assert_eq!(
-        Some(MaybeInherited::Local(lib::Edition::E2018)),
+        Some(MaybeInherited::Local(lib::Edition::E2021)),
         package.edition
     );
 }
@@ -239,10 +239,37 @@ documentation.workspace = true
 "#,
     )
     .unwrap();
-
     let package = m.package.unwrap();
     assert_eq!(MaybeInherited::inherited(), package.version);
     assert_eq!(Some(MaybeInherited::inherited()), package.authors);
     assert_eq!(Some(MaybeInherited::inherited()), package.description);
     assert_eq!(Some(MaybeInherited::inherited()), package.documentation);
+}
+
+/// This test ensures that we correctly handle crate dependencies that are deferred to the top-level workspace.
+#[test]
+fn workspace_dependency() {
+    Manifest::from_str(
+        r#"
+[workspace]
+members = ["core"]
+[workspace.dependencies]
+chrono = "0.4"
+serde = { version = "1.0", features = [ "derive" ] }
+"#,
+    )
+    .unwrap();
+
+    Manifest::from_str(
+        r#"
+[package]
+name = "core"
+version = "0.1.0"
+[dependencies]
+chrono.workspace = true
+config = "0.13"
+tokio = { workspace = true, features = [ "rt-multi-thread" ] }
+"#,
+    )
+    .unwrap();
 }
