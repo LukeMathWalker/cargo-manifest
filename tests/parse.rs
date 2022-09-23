@@ -1,5 +1,5 @@
 use cargo_manifest as lib;
-use cargo_manifest::Manifest;
+use cargo_manifest::{Manifest, MaybeInherited, Publish};
 use std::fs::read;
 use std::str::FromStr;
 
@@ -12,7 +12,10 @@ fn own() {
         Manifest::<toml::Value>::from_slice_with_metadata(&read("Cargo.toml").unwrap()).unwrap();
     let package = m.package.as_ref().unwrap();
     assert_eq!("cargo-manifest", package.name);
-    assert_eq!(lib::Edition::E2018, package.edition);
+    assert_eq!(
+        Some(MaybeInherited::Local(lib::Edition::E2018)),
+        package.edition
+    );
 }
 
 #[test]
@@ -44,7 +47,7 @@ fn opt_level() {
             .unwrap()
     );
     assert!(!m.lib.unwrap().bench);
-    assert_eq!(lib::Edition::E2015, package.edition);
+    assert_eq!(None, package.edition);
     assert_eq!(1, m.patch.unwrap().len());
 }
 
@@ -53,7 +56,10 @@ fn autobin() {
     let m = Manifest::from_path("tests/autobin/Cargo.toml").expect("load autobin");
     let package = m.package.as_ref().unwrap();
     assert_eq!("auto-bin", package.name);
-    assert_eq!(lib::Edition::E2018, package.edition);
+    assert_eq!(
+        Some(MaybeInherited::Local(lib::Edition::E2018)),
+        package.edition
+    );
     assert!(package.autobins);
     assert!(m.lib.is_none());
     assert_eq!(1, m.bin.as_ref().unwrap().len());
@@ -65,11 +71,11 @@ fn autolib() {
     let m = Manifest::from_path("tests/autolib/Cargo.toml").expect("load autolib");
     let package = m.package.as_ref().unwrap();
     assert_eq!("auto-lib", package.name);
-    #[allow(clippy::bool_assert_comparison)]
-    {
-        assert_eq!(false, package.publish);
-    }
-    assert_eq!(lib::Edition::E2015, package.edition);
+    assert_eq!(
+        Some(MaybeInherited::Local(Publish::Flag(false))),
+        package.publish
+    );
+    assert_eq!(None, package.edition);
     assert!(package.autobins);
     assert!(!package.autoexamples);
     assert!(m.lib.is_some());
@@ -98,11 +104,14 @@ fn readme() {
 
     let m = Manifest::from_str(&format!("{}\nreadme = \"hello.md\"", base)).unwrap();
     let readme = m.package.unwrap().readme.unwrap();
-    assert_eq!(lib::StringOrBool::String("hello.md".to_string()), readme);
+    assert_eq!(
+        MaybeInherited::Local(lib::StringOrBool::String("hello.md".to_string())),
+        readme
+    );
 
     let m = Manifest::from_str(&format!("{}\nreadme = true", base)).unwrap();
     let readme = m.package.unwrap().readme.unwrap();
-    assert_eq!(lib::StringOrBool::Bool(true), readme);
+    assert_eq!(MaybeInherited::Local(lib::StringOrBool::Bool(true)), readme);
 
     let m = Manifest::from_str(&format!("{}\nreadme = 1", base));
     assert!(m.is_err());
@@ -214,4 +223,26 @@ proc_macro = true
 
     let lib = m.lib.as_ref().unwrap();
     assert!(lib.proc_macro);
+}
+
+/// We can work with package properties inherited from the workspace manifest.
+#[test]
+fn package_inheritance() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "bar"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+"#,
+    )
+    .unwrap();
+
+    let package = m.package.unwrap();
+    assert_eq!(MaybeInherited::inherited(), package.version);
+    assert_eq!(Some(MaybeInherited::inherited()), package.authors);
+    assert_eq!(Some(MaybeInherited::inherited()), package.description);
+    assert_eq!(Some(MaybeInherited::inherited()), package.documentation);
 }

@@ -9,8 +9,8 @@ use std::path::Path;
 
 #[macro_use]
 extern crate serde_derive;
-use serde::Deserialize;
 use serde::Deserializer;
+use serde::{Deserialize, Serialize, Serializer};
 use std::collections::BTreeMap;
 
 pub use toml::Value;
@@ -24,6 +24,7 @@ mod afs;
 mod error;
 pub use crate::afs::*;
 pub use crate::error::Error;
+use serde::de::{Error as _, Unexpected};
 use std::str::FromStr;
 
 /// The top-level `Cargo.toml` structure
@@ -89,6 +90,58 @@ pub struct Workspace {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<DepsSet>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub package: Option<WorkspacePackage>,
+}
+
+/// The workspace.package table is where you define keys that can be inherited by members of a
+/// workspace. These keys can be inherited by defining them in the member package with
+/// `{key}.workspace = true`.
+///
+/// See https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-package-table
+/// for more details.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub struct WorkspacePackage {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub edition: Option<Edition>,
+    /// e.g. "1.9.0"
+    pub version: Option<String>,
+    /// e.g. ["Author <e@mail>", "etc"]
+    pub authors: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// A short blurb about the package. This is not rendered in any format when
+    /// uploaded to crates.io (aka this is not markdown).
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub homepage: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub documentation: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// This points to a file under the package root (relative to this `Cargo.toml`).
+    pub readme: Option<StringOrBool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keywords: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// This is a list of up to five categories where this crate would fit.
+    /// e.g. ["command-line-utilities", "development-tools::cargo-plugins"]
+    pub categories: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// e.g. "MIT"
+    pub license: Option<String>,
+    #[serde(rename = "license-file")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub license_file: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub publish: Option<Publish>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include: Option<Vec<String>>,
+    /// e.g. "1.63.0"
+    #[serde(rename = "rust-version")]
+    pub rust_version: Option<String>,
 }
 
 fn default_true() -> bool {
@@ -180,13 +233,18 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 result => result,
             }?;
 
+            let edition = match package.edition {
+                Some(MaybeInherited::Local(edition)) => Some(edition),
+                _ => None,
+            };
+
             if let Some(ref mut lib) = self.lib {
                 lib.required_features.clear(); // not applicable
             } else if src.contains("lib.rs") {
                 self.lib = Some(Product {
                     name: Some(package.name.replace('-', "_")),
                     path: Some("src/lib.rs".to_string()),
-                    edition: Some(package.edition),
+                    edition,
                     crate_type: Some(vec!["rlib".to_string()]),
                     ..Product::default()
                 })
@@ -198,7 +256,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                     bin.push(Product {
                         name: Some(package.name.clone()),
                         path: Some("src/main.rs".to_string()),
-                        edition: Some(package.edition),
+                        edition,
                         ..Product::default()
                     })
                 }
@@ -228,6 +286,10 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
 
 fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> Vec<Product> {
     let mut out = Vec::new();
+    let edition = match package.edition {
+        Some(MaybeInherited::Local(edition)) => Some(edition),
+        _ => None,
+    };
     if let Ok(bins) = fs.file_names_in(dir) {
         for name in bins {
             let rel_path = format!("{}/{}", dir, name);
@@ -235,7 +297,7 @@ fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> V
                 out.push(Product {
                     name: Some(name.trim_end_matches(".rs").into()),
                     path: Some(rel_path),
-                    edition: Some(package.edition),
+                    edition,
                     ..Product::default()
                 })
             } else if let Ok(sub) = fs.file_names_in(&rel_path) {
@@ -243,7 +305,7 @@ fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> V
                     out.push(Product {
                         name: Some(name.into()),
                         path: Some(rel_path + "/main.rs"),
-                        edition: Some(package.edition),
+                        edition,
                         ..Product::default()
                     })
                 }
@@ -475,42 +537,111 @@ pub struct DependencyDetail {
     pub package: Option<String>,
 }
 
+/// Used as a wrapper for properties that may be inherited by workspace-level settings.
+/// It currently does not support more complex interactions (e.g. specifying part of the property
+/// in the local manifest while inheriting another part of it from the workspace manifest, as it
+/// happens for dependency features).
+///
+/// See [`cargo`'s documentation](https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#workspaces)
+/// for more details.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MaybeInherited<T> {
+    Inherited { workspace: True },
+    Local(T),
+}
+
+impl<T> MaybeInherited<T> {
+    pub fn inherited() -> Self {
+        Self::Inherited { workspace: True }
+    }
+}
+
+/// A type-level representation of a `true` boolean value.
+#[derive(Debug, Clone, PartialEq)]
+#[doc(hidden)]
+pub struct True;
+
+impl Serialize for True {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_bool(true)
+    }
+}
+
+impl<'de> Deserialize<'de> for True {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        if bool::deserialize(deserializer)? {
+            Ok(Self)
+        } else {
+            Err(D::Error::invalid_value(
+                Unexpected::Bool(false),
+                &"a `true` boolean value",
+            ))
+        }
+    }
+}
+
 /// You can replace `Metadata` type with your own
 /// to parse into something more useful than a generic toml `Value`
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Package<Metadata = Value> {
     /// Careful: some names are uppercase
     pub name: String,
-    #[serde(default)]
-    pub edition: Edition,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub edition: Option<MaybeInherited<Edition>>,
     /// e.g. "1.9.0"
-    pub version: String,
+    pub version: MaybeInherited<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub build: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub workspace: Option<String>,
-    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// e.g. ["Author <e@mail>", "etc"]
-    pub authors: Vec<String>,
+    pub authors: Option<MaybeInherited<Vec<String>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub links: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// A short blurb about the package. This is not rendered in any format when
     /// uploaded to crates.io (aka this is not markdown).
-    pub description: Option<String>,
-    pub homepage: Option<String>,
-    pub documentation: Option<String>,
+    pub description: Option<MaybeInherited<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub homepage: Option<MaybeInherited<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub documentation: Option<MaybeInherited<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// This points to a file under the package root (relative to this `Cargo.toml`).
-    pub readme: Option<StringOrBool>,
-    #[serde(default)]
-    pub keywords: Vec<String>,
-    #[serde(default)]
+    pub readme: Option<MaybeInherited<StringOrBool>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keywords: Option<MaybeInherited<Vec<String>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// This is a list of up to five categories where this crate would fit.
     /// e.g. ["command-line-utilities", "development-tools::cargo-plugins"]
-    pub categories: Vec<String>,
+    pub categories: Option<MaybeInherited<Vec<String>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// e.g. "MIT"
-    pub license: Option<String>,
+    pub license: Option<MaybeInherited<String>>,
     #[serde(rename = "license-file")]
-    pub license_file: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub license_file: Option<MaybeInherited<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub repository: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Metadata>,
+    /// e.g. "1.63.0"
+    #[serde(rename = "rust-version")]
+    pub rust_version: Option<MaybeInherited<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude: Option<MaybeInherited<Vec<String>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include: Option<MaybeInherited<Vec<String>>>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     /// The default binary to run by cargo run.
     pub default_run: Option<String>,
 
@@ -522,8 +653,8 @@ pub struct Package<Metadata = Value> {
     pub autotests: bool,
     #[serde(default = "default_true")]
     pub autobenches: bool,
-    #[serde(default)]
-    pub publish: Publish,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub publish: Option<MaybeInherited<Publish>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolver: Option<Resolver>,
 }
