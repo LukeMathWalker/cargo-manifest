@@ -649,7 +649,7 @@ pub struct Package<Metadata = Value> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub license_file: Option<MaybeInherited<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub repository: Option<String>,
+    pub repository: Option<MaybeInherited<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Metadata>,
     /// e.g. "1.63.0"
