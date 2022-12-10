@@ -147,6 +147,8 @@ pub struct WorkspacePackage {
     pub exclude: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repository: Option<String>,
     /// e.g. "1.63.0"
     #[serde(rename = "rust-version")]
     pub rust_version: Option<String>,
