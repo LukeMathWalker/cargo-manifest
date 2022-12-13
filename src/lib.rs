@@ -34,6 +34,8 @@ pub struct Manifest<Metadata = Value> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<Package<Metadata>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub cargo_features: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub workspace: Option<Workspace>,
     #[serde(
         skip_serializing_if = "Option::is_none",
