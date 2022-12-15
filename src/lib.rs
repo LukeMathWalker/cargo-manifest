@@ -54,9 +54,15 @@ pub struct Manifest<Metadata = Value> {
         serialize_with = "serialize_optional_tables_last"
     )]
     pub build_dependencies: Option<DepsSet>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_optional_tables_last"
+    )]
     pub target: Option<TargetDepsSet>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_optional_tables_last"
+    )]
     pub features: Option<FeatureSet>,
     /// Note that due to autobins feature this is not the complete list
     /// unless you run `complete_from_path`
@@ -69,7 +75,10 @@ pub struct Manifest<Metadata = Value> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub example: Option<Vec<Product>>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_optional_tables_last"
+    )]
     pub patch: Option<PatchSet>,
 
     /// Note that due to autolibs feature this is not the complete list
@@ -98,7 +107,10 @@ pub struct Workspace {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolver: Option<Resolver>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_optional_tables_last"
+    )]
     pub dependencies: Option<DepsSet>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -357,6 +369,7 @@ pub struct Profile {
     #[serde(alias = "overflow_checks")]
     pub overflow_checks: Option<bool>,
     #[serde(default)]
+    #[serde(serialize_with = "toml::ser::tables_last")]
     pub package: BTreeMap<String, Value>,
     /// profile overrides
     pub build_override: Option<Value>,
@@ -452,11 +465,22 @@ impl Default for Product {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Target {
-    #[serde(default)]
+    #[serde(
+        default,
+        serialize_with = "toml::ser::tables_last"
+    )]
     pub dependencies: DepsSet,
-    #[serde(default, alias = "dev_dependencies")]
+    #[serde(
+        default,
+        alias = "dev_dependencies",
+        serialize_with = "toml::ser::tables_last"
+    )]
     pub dev_dependencies: DepsSet,
-    #[serde(default, alias = "build_dependencies")]
+    #[serde(
+        default,
+        alias = "build_dependencies",
+        serialize_with = "toml::ser::tables_last"
+    )]
     pub build_dependencies: DepsSet,
 }
 
