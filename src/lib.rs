@@ -37,32 +37,15 @@ pub struct Manifest<Metadata = Value> {
     pub cargo_features: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub workspace: Option<Workspace>,
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        serialize_with = "serialize_optional_tables_last"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<DepsSet>,
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        alias = "dev_dependencies",
-        serialize_with = "serialize_optional_tables_last"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "dev_dependencies")]
     pub dev_dependencies: Option<DepsSet>,
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        alias = "build_dependencies",
-        serialize_with = "serialize_optional_tables_last"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "build_dependencies")]
     pub build_dependencies: Option<DepsSet>,
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        serialize_with = "serialize_optional_tables_last"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target: Option<TargetDepsSet>,
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        serialize_with = "serialize_optional_tables_last"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub features: Option<FeatureSet>,
     /// Note that due to autobins feature this is not the complete list
     /// unless you run `complete_from_path`
@@ -75,10 +58,7 @@ pub struct Manifest<Metadata = Value> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub example: Option<Vec<Product>>,
 
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        serialize_with = "serialize_optional_tables_last"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub patch: Option<PatchSet>,
 
     /// Note that due to autolibs feature this is not the complete list
@@ -107,10 +87,7 @@ pub struct Workspace {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolver: Option<Resolver>,
 
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        serialize_with = "serialize_optional_tables_last"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<DepsSet>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -206,11 +183,11 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// It does not call `complete_from_path`, so may be missing implicit data.
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
-        let mut manifest: Self = toml::from_slice(cargo_toml_content)?;
+        let mut manifest: Self = toml::from_str(&std::str::from_utf8(cargo_toml_content)?)?;
         if manifest.package.is_none() && manifest.workspace.is_none() {
             // Some old crates lack the `[package]` header
 
-            let val: Value = toml::from_slice(cargo_toml_content)?;
+            let val: Value = toml::from_str(&std::str::from_utf8(cargo_toml_content)?)?;
             if let Some(project) = val.get("project") {
                 manifest.package = Some(project.clone().try_into()?);
             } else {
@@ -369,7 +346,6 @@ pub struct Profile {
     #[serde(alias = "overflow_checks")]
     pub overflow_checks: Option<bool>,
     #[serde(default)]
-    #[serde(serialize_with = "toml::ser::tables_last")]
     pub package: BTreeMap<String, Value>,
     /// profile overrides
     pub build_override: Option<Value>,
@@ -465,22 +441,11 @@ impl Default for Product {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Target {
-    #[serde(
-        default,
-        serialize_with = "toml::ser::tables_last"
-    )]
+    #[serde(default)]
     pub dependencies: DepsSet,
-    #[serde(
-        default,
-        alias = "dev_dependencies",
-        serialize_with = "toml::ser::tables_last"
-    )]
+    #[serde(default, alias = "dev_dependencies")]
     pub dev_dependencies: DepsSet,
-    #[serde(
-        default,
-        alias = "build_dependencies",
-        serialize_with = "toml::ser::tables_last"
-    )]
+    #[serde(default, alias = "build_dependencies")]
     pub build_dependencies: DepsSet,
 }
 
@@ -866,23 +831,5 @@ pub enum Resolver {
 impl Default for Resolver {
     fn default() -> Self {
         Self::V1
-    }
-}
-
-fn serialize_optional_tables_last<'a, I, K, V, S>(
-    data: &'a Option<I>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    &'a I: IntoIterator<Item = (K, V)>,
-    I: Serialize,
-    K: Serialize,
-    V: Serialize,
-    S: Serializer,
-{
-    if let Some(d) = data {
-        toml::ser::tables_last(d, serializer)
-    } else {
-        None::<I>.serialize(serializer)
     }
 }
