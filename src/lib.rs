@@ -183,11 +183,11 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// It does not call `complete_from_path`, so may be missing implicit data.
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
-        let mut manifest: Self = toml::from_str(&std::str::from_utf8(cargo_toml_content)?)?;
+        let mut manifest: Self = toml_from_slice(cargo_toml_content)?;
         if manifest.package.is_none() && manifest.workspace.is_none() {
             // Some old crates lack the `[package]` header
 
-            let val: Value = toml::from_str(&std::str::from_utf8(cargo_toml_content)?)?;
+            let val: Value = toml_from_slice(cargo_toml_content)?;
             if let Some(project) = val.get("project") {
                 manifest.package = Some(project.clone().try_into()?);
             } else {
@@ -729,6 +729,13 @@ where
     D: Deserializer<'de>,
 {
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
+}
+
+pub fn toml_from_slice<T>(s: &'_ [u8]) -> Result<T, Error>
+where
+    T: serde::de::DeserializeOwned,
+{
+    Ok(toml::from_str(std::str::from_utf8(s)?)?)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
