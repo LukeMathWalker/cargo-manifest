@@ -731,7 +731,7 @@ where
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }
 
-pub fn toml_from_slice<T>(s: &'_ [u8]) -> Result<T, Error>
+fn toml_from_slice<T>(s: &'_ [u8]) -> Result<T, Error>
 where
     T: serde::de::DeserializeOwned,
 {
