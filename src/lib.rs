@@ -795,7 +795,9 @@ pub struct Maintenance {
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[derive(Default)]
 pub enum MaintenanceStatus {
+    #[default]
     None,
     ActivelyDeveloped,
     PassivelyMaintained,
@@ -805,15 +807,13 @@ pub enum MaintenanceStatus {
     Deprecated,
 }
 
-impl Default for MaintenanceStatus {
-    fn default() -> Self {
-        MaintenanceStatus::None
-    }
-}
+
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Edition {
     #[serde(rename = "2015")]
+    #[default]
     E2015,
     #[serde(rename = "2018")]
     E2018,
@@ -821,11 +821,7 @@ pub enum Edition {
     E2021,
 }
 
-impl Default for Edition {
-    fn default() -> Self {
-        Edition::E2015
-    }
-}
+
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub enum Resolver {
