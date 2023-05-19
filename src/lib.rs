@@ -364,9 +364,17 @@ impl TryFrom<Value> for StripSetting {
                 "none" => Self::None,
                 "debuginfo" => Self::Debuginfo,
                 "symbols" => Self::Symbols,
-                _ => return Err(Error::Other("strip setting has unknown string value")),
+                other => {
+                    return Err(Error::Other(format!(
+                        "'{other}' is not a valid value for 'strip'"
+                    )))
+                }
             },
-            _ => return Err(Error::Other("wrong data type for strip setting")),
+            _ => {
+                return Err(Error::Other(
+                    "wrong data type for strip setting".to_string(),
+                ))
+            }
         })
     }
 }
