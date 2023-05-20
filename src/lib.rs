@@ -859,10 +859,7 @@ pub enum MaintenanceStatus {
     Deprecated,
 }
 
-
-
-#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize, Default)]
 pub enum Edition {
     #[serde(rename = "2015")]
     #[default]
@@ -872,8 +869,6 @@ pub enum Edition {
     #[serde(rename = "2021")]
     E2021,
 }
-
-
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub enum Resolver {
