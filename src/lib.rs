@@ -328,6 +328,57 @@ pub struct Profiles {
     pub custom: BTreeMap<String, Profile>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
+#[serde(try_from = "toml::Value")]
+pub enum StripSetting {
+    /// false
+    None,
+    Debuginfo,
+    /// true
+    Symbols,
+}
+
+impl Serialize for StripSetting {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::None => serializer.serialize_bool(false),
+            Self::Debuginfo => serializer.serialize_str("debuginfo"),
+            Self::Symbols => serializer.serialize_bool(true),
+        }
+    }
+}
+
+impl TryFrom<Value> for StripSetting {
+    type Error = Error;
+
+    fn try_from(v: Value) -> Result<Self, Error> {
+        Ok(match v {
+            Value::Boolean(b) => {
+                if b {
+                    Self::Symbols
+                } else {
+                    Self::None
+                }
+            }
+            Value::String(s) => match s.as_str() {
+                "none" => Self::None,
+                "debuginfo" => Self::Debuginfo,
+                "symbols" => Self::Symbols,
+                other => {
+                    return Err(Error::Other(format!(
+                        "'{other}' is not a valid value for 'strip'"
+                    )))
+                }
+            },
+            _ => {
+                return Err(Error::Other(
+                    "wrong data type for strip setting".to_string(),
+                ))
+            }
+        })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Profile {
@@ -345,6 +396,7 @@ pub struct Profile {
     pub incremental: Option<bool>,
     #[serde(alias = "overflow_checks")]
     pub overflow_checks: Option<bool>,
+    pub strip: Option<StripSetting>,
     #[serde(default)]
     pub package: BTreeMap<String, Value>,
     /// profile overrides

@@ -7,6 +7,7 @@ pub enum Error {
     Parse(toml::de::Error),
     Io(io::Error),
     Utf8(std::str::Utf8Error),
+    Other(String),
 }
 
 impl StdErr for Error {
@@ -15,26 +16,29 @@ impl StdErr for Error {
             Error::Parse(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
+            Error::Other(_) => None,
         }
     }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
+        match self {
             Error::Parse(ref err) => err.fmt(f),
             Error::Io(ref err) => err.fmt(f),
             Error::Utf8(ref err) => err.fmt(f),
+            Error::Other(msg) => f.write_str(msg),
         }
     }
 }
 
 impl Clone for Error {
     fn clone(&self) -> Self {
-        match *self {
+        match self {
             Error::Parse(ref err) => Error::Parse(err.clone()),
             Error::Io(ref err) => Error::Io(io::Error::new(err.kind(), err.to_string())),
             Error::Utf8(ref err) => Error::Utf8(*err),
+            Error::Other(msg) => Error::Other(msg.clone()),
         }
     }
 }
