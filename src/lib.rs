@@ -619,6 +619,20 @@ impl<T> MaybeInherited<T> {
     pub fn inherited() -> Self {
         Self::Inherited { workspace: True }
     }
+
+    pub fn as_local(self) -> Option<T> {
+        match self {
+            Self::Local(x) => Some(x),
+            Self::Inherited { .. } => None,
+        }
+    }
+
+    pub const fn as_ref(&self) -> MaybeInherited<&T> {
+        match self {
+            Self::Local(ref x) => MaybeInherited::Local(x),
+            Self::Inherited { .. } => MaybeInherited::Inherited { workspace: True },
+        }
+    }
 }
 
 /// A type-level representation of a `true` boolean value.
