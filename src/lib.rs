@@ -620,7 +620,7 @@ impl<T> MaybeInherited<T> {
         Self::Inherited { workspace: True }
     }
 
-    pub fn local(self) -> Option<T> {
+    pub fn as_local(self) -> Option<T> {
         match self {
             Self::Local(x) => Some(x),
             Self::Inherited { .. } => None,
