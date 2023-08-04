@@ -273,12 +273,12 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 self.bench = Some(autoset(package, "benches", &fs));
             }
 
-            if package.build.is_none()
+            if matches!(package.build, None | Some(StringOrBool::Bool(true)))
                 && fs
                     .file_names_in(".")
                     .map_or(false, |dir| dir.contains("build.rs"))
             {
-                package.build = Some(Value::String("build.rs".to_string()));
+                package.build = Some(StringOrBool::String("build.rs".to_string()));
             }
         }
         Ok(())
@@ -676,7 +676,7 @@ pub struct Package<Metadata = Value> {
     /// e.g. "1.9.0"
     pub version: MaybeInherited<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub build: Option<Value>,
+    pub build: Option<StringOrBool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub workspace: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
