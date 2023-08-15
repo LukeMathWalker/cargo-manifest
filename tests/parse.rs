@@ -87,7 +87,10 @@ fn autolib() {
 fn autobuild() {
     let m = Manifest::from_path("tests/autobuild/Cargo.toml").expect("load autobuild");
     let package = m.package.as_ref().unwrap();
-    assert_eq!(Some(lib::Value::String("build.rs".into())), package.build);
+    assert_eq!(
+        Some(lib::StringOrBool::String("build.rs".into())),
+        package.build
+    );
 }
 
 #[test]
@@ -95,7 +98,10 @@ fn metadata() {
     let m = Manifest::from_path("tests/metadata/Cargo.toml").expect("load metadata");
     let package = m.package.as_ref().unwrap();
     assert_eq!("metadata", package.name);
-    assert_eq!(Some(lib::Value::String("foobar.rs".into())), package.build);
+    assert_eq!(
+        Some(lib::StringOrBool::String("foobar.rs".into())),
+        package.build
+    );
 }
 
 #[test]
