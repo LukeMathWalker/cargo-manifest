@@ -399,6 +399,7 @@ pub struct Profile {
     pub strip: Option<StripSetting>,
     #[serde(default)]
     pub package: BTreeMap<String, Value>,
+    pub split_debuginfo: Option<String>,
     /// profile overrides
     pub build_override: Option<Value>,
 }
