@@ -52,12 +52,7 @@ fn opt_level() {
     assert_eq!(1, m.patch.unwrap().len());
     assert_eq!(
         "unpacked",
-        profiles
-            .bench
-            .unwrap()
-            .split_debuginfo
-            .unwrap()
-            .as_str()
+        profiles.bench.unwrap().split_debuginfo.unwrap().as_str()
     );
 }
 
