@@ -28,6 +28,7 @@ fn opt_level() {
         3,
         profiles
             .bench
+            .clone()
             .unwrap()
             .opt_level
             .unwrap()
@@ -49,6 +50,15 @@ fn opt_level() {
     assert!(!m.lib.unwrap().bench);
     assert_eq!(None, package.edition);
     assert_eq!(1, m.patch.unwrap().len());
+    assert_eq!(
+        "unpacked",
+        profiles
+            .bench
+            .unwrap()
+            .split_debuginfo
+            .unwrap()
+            .as_str()
+    );
 }
 
 #[test]

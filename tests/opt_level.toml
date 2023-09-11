@@ -16,6 +16,7 @@ publish = false
 
 [profile.bench]
 opt-level = 3
+split-debuginfo = "unpacked"
 
 [profile.my-custom]
 opt-level = 2
