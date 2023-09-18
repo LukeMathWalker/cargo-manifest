@@ -767,6 +767,40 @@ pub struct Package<Metadata = Value> {
     pub resolver: Option<Resolver>,
 }
 
+impl<Metadata> Package<Metadata> {
+    pub fn new(name: String, version: String) -> Self {
+        Self {
+            name,
+            edition: None,
+            version: MaybeInherited::Local(version),
+            build: None,
+            workspace: None,
+            authors: None,
+            links: None,
+            description: None,
+            homepage: None,
+            documentation: None,
+            readme: None,
+            keywords: None,
+            categories: None,
+            license: None,
+            license_file: None,
+            repository: None,
+            metadata: None,
+            rust_version: None,
+            exclude: None,
+            include: None,
+            default_run: None,
+            autobins: true,
+            autoexamples: true,
+            autotests: true,
+            autobenches: true,
+            publish: None,
+            resolver: None,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 #[serde(untagged)]
 pub enum StringOrBool {
