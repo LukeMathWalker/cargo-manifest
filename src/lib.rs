@@ -149,6 +149,10 @@ fn default_true() -> bool {
     true
 }
 
+fn is_true(value: &bool) -> bool {
+    *value
+}
+
 impl Manifest<Value> {
     /// Parse contents of a `Cargo.toml` file already loaded as a byte slice.
     ///
@@ -420,21 +424,21 @@ pub struct Product {
     pub name: Option<String>,
 
     /// A flag for enabling unit tests for this product. This is used by `cargo test`.
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub test: bool,
 
     /// A flag for enabling documentation tests for this product. This is only relevant
     /// for libraries, it has no effect on other sections. This is used by
     /// `cargo test`.
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub doctest: bool,
 
     /// A flag for enabling benchmarks for this product. This is used by `cargo bench`.
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub bench: bool,
 
     /// A flag for enabling documentation of this product. This is used by `cargo doc`.
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub doc: bool,
 
     /// If the product is meant to be a compiler plugin, this field must be set to true
@@ -450,7 +454,7 @@ pub struct Product {
     /// If set to false, `cargo test` will omit the `--test` flag to rustc, which
     /// stops it from generating a test harness. This is useful when the binary being
     /// built manages the test runner itself.
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub harness: bool,
 
     /// If set then a product can be configured to use a different edition than the
@@ -724,13 +728,13 @@ pub struct Package<Metadata = Value> {
     /// The default binary to run by cargo run.
     pub default_run: Option<String>,
 
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub autobins: bool,
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub autoexamples: bool,
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub autotests: bool,
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", skip_serializing_if = "is_true")]
     pub autobenches: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub publish: Option<MaybeInherited<Publish>>,
