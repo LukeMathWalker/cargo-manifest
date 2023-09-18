@@ -72,6 +72,30 @@ pub struct Manifest<Metadata = Value> {
     pub badges: Option<Badges>,
 }
 
+impl<Metadata> Default for Manifest<Metadata> {
+    #[allow(deprecated)]
+    fn default() -> Self {
+        Self {
+            package: None,
+            cargo_features: None,
+            workspace: None,
+            dependencies: None,
+            dev_dependencies: None,
+            build_dependencies: None,
+            target: None,
+            features: None,
+            patch: None,
+            lib: None,
+            profile: None,
+            badges: None,
+            bin: None,
+            bench: None,
+            test: None,
+            example: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct Workspace {
