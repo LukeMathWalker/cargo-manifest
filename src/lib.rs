@@ -720,6 +720,7 @@ pub struct Package<Metadata = Value> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include: Option<MaybeInherited<Vec<String>>>,
 
+    #[serde(rename = "default-run")]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// The default binary to run by cargo run.
     pub default_run: Option<String>,
