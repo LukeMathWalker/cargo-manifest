@@ -3,6 +3,7 @@ name: Rust
 on: [push, pull_request]
 
 env:
+  CARGO_TARPAULIN_VERSION: 0.27.0
   CARGO_TERM_COLOR: always
 
 jobs:
@@ -65,7 +66,14 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
+      - uses: Swatinem/rust-cache@v2.7.0
+
+      - uses: actions-rs/cargo@v1
         with:
+          command: install
+          args: cargo-tarpaulin --version ${{ env.CARGO_TARPAULIN_VERSION }}
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: tarpaulin
           args: '--ignore-tests'
