@@ -1,0 +1,111 @@
+---
+source: tests/parse.rs
+expression: m
+---
+Manifest {
+    package: Some(
+        Package {
+            name: "auto-lib",
+            edition: None,
+            version: Local(
+                "0.1.0",
+            ),
+            build: None,
+            workspace: None,
+            authors: Some(
+                Local(
+                    [
+                        "Kornel <kornel@geekhood.net>",
+                    ],
+                ),
+            ),
+            links: None,
+            description: None,
+            homepage: None,
+            documentation: None,
+            readme: None,
+            keywords: None,
+            categories: None,
+            license: None,
+            license_file: None,
+            repository: None,
+            metadata: None,
+            rust_version: None,
+            exclude: None,
+            include: None,
+            default_run: None,
+            autobins: true,
+            autoexamples: false,
+            autotests: true,
+            autobenches: true,
+            publish: Some(
+                Local(
+                    Flag(
+                        false,
+                    ),
+                ),
+            ),
+            resolver: None,
+        },
+    ),
+    cargo_features: None,
+    workspace: None,
+    dependencies: Some(
+        {},
+    ),
+    dev_dependencies: None,
+    build_dependencies: None,
+    target: None,
+    features: None,
+    bin: Some(
+        [],
+    ),
+    bench: Some(
+        [],
+    ),
+    test: Some(
+        [],
+    ),
+    example: None,
+    patch: None,
+    lib: Some(
+        Product {
+            path: Some(
+                "src/lib.rs",
+            ),
+            name: Some(
+                "auto_lib",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: None,
+            required_features: [],
+            crate_type: Some(
+                [
+                    "rlib",
+                ],
+            ),
+        },
+    ),
+    profile: None,
+    badges: Some(
+        Badges {
+            appveyor: None,
+            circle_ci: None,
+            gitlab: None,
+            travis_ci: None,
+            codecov: None,
+            coveralls: None,
+            is_it_maintained_issue_resolution: None,
+            is_it_maintained_open_issues: None,
+            maintenance: Maintenance {
+                status: None,
+            },
+        },
+    ),
+}

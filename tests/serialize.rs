@@ -8,8 +8,5 @@ fn basic() {
     };
 
     let serialized = toml::to_string(&manifest).unwrap();
-    assert_eq!(
-        serialized,
-        "[package]\nname = \"foo\"\nversion = \"1.0.0\"\n"
-    );
+    insta::assert_snapshot!(serialized);
 }
