@@ -36,7 +36,6 @@ Manifest {
                                 ],
                             ),
                             optional: None,
-                            workspace: None,
                             default_features: None,
                             package: None,
                         },

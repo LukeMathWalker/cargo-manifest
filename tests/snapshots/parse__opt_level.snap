@@ -110,7 +110,6 @@ Manifest {
                     rev: None,
                     features: None,
                     optional: None,
-                    workspace: None,
                     default_features: Some(
                         false,
                     ),
@@ -131,7 +130,6 @@ Manifest {
                     rev: None,
                     features: None,
                     optional: None,
-                    workspace: None,
                     default_features: None,
                     package: None,
                 },
@@ -168,7 +166,6 @@ Manifest {
                         rev: None,
                         features: None,
                         optional: None,
-                        workspace: None,
                         default_features: Some(
                             false,
                         ),

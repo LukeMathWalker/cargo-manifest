@@ -40,49 +40,25 @@ Manifest {
     workspace: None,
     dependencies: Some(
         {
-            "chrono": Detailed(
-                DependencyDetail {
-                    version: None,
-                    registry: None,
-                    registry_index: None,
-                    path: None,
-                    git: None,
-                    branch: None,
-                    tag: None,
-                    rev: None,
+            "chrono": Inherited(
+                InheritedDependencyDetail {
+                    workspace: True,
                     features: None,
                     optional: None,
-                    workspace: Some(
-                        true,
-                    ),
-                    default_features: None,
-                    package: None,
                 },
             ),
             "config": Simple(
                 "0.13",
             ),
-            "tokio": Detailed(
-                DependencyDetail {
-                    version: None,
-                    registry: None,
-                    registry_index: None,
-                    path: None,
-                    git: None,
-                    branch: None,
-                    tag: None,
-                    rev: None,
+            "tokio": Inherited(
+                InheritedDependencyDetail {
+                    workspace: True,
                     features: Some(
                         [
                             "rt-multi-thread",
                         ],
                     ),
                     optional: None,
-                    workspace: Some(
-                        true,
-                    ),
-                    default_features: None,
-                    package: None,
                 },
             ),
         },

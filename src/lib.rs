@@ -534,14 +534,15 @@ pub struct Target {
 #[serde(untagged)]
 pub enum Dependency {
     Simple(String),
+    Inherited(InheritedDependencyDetail), // order is important for serde
     Detailed(DependencyDetail),
 }
 
 impl Dependency {
     pub fn detail(&self) -> Option<&DependencyDetail> {
         match *self {
-            Dependency::Simple(_) => None,
             Dependency::Detailed(ref d) => Some(d),
+            _ => None,
         }
     }
 
@@ -549,6 +550,7 @@ impl Dependency {
         match *self {
             Dependency::Simple(ref v) => v,
             Dependency::Detailed(ref d) => d.version.as_deref().unwrap_or("*"),
+            Dependency::Inherited(_) => "*",
         }
     }
 
@@ -556,19 +558,24 @@ impl Dependency {
         match *self {
             Dependency::Simple(_) => &[],
             Dependency::Detailed(ref d) => d.features.as_deref().unwrap_or(&[]),
+            Dependency::Inherited(ref i) => i.features.as_deref().unwrap_or(&[]),
         }
     }
 
     pub fn optional(&self) -> bool {
-        self.detail().map_or(false, |d| d.optional.unwrap_or(false))
+        match *self {
+            Dependency::Simple(_) => false,
+            Dependency::Detailed(ref d) => d.optional.unwrap_or(false),
+            Dependency::Inherited(ref i) => i.optional.unwrap_or(false),
+        }
     }
 
     // `Some` if it overrides the package name.
     // If `None`, use the dependency name as the package name.
     pub fn package(&self) -> Option<&str> {
         match *self {
-            Dependency::Simple(_) => None,
             Dependency::Detailed(ref d) => d.package.as_deref(),
+            _ => None,
         }
     }
 
@@ -592,6 +599,7 @@ impl Dependency {
                     && d.branch.is_none()
                     && d.rev.is_none()
             }
+            Dependency::Inherited(_) => false,
         }
     }
 }
@@ -621,13 +629,25 @@ pub struct DependencyDetail {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub optional: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub workspace: Option<bool>,
     #[serde(default, alias = "default_features")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_features: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<String>,
+}
+
+/// When a dependency is defined as `{ workspace = true }`,
+/// and workspace data hasn't been applied yet.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct InheritedDependencyDetail {
+    pub workspace: True,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub features: Option<Vec<String>>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub optional: Option<bool>,
 }
 
 /// Used as a wrapper for properties that may be inherited by workspace-level settings.
@@ -665,7 +685,7 @@ impl<T> MaybeInherited<T> {
 }
 
 /// A type-level representation of a `true` boolean value.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 #[doc(hidden)]
 pub struct True;
 
