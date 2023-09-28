@@ -58,7 +58,6 @@ Manifest {
                         ],
                     ),
                     optional: None,
-                    workspace: None,
                     default_features: Some(
                         false,
                     ),
