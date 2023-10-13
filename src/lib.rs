@@ -546,6 +546,15 @@ impl Dependency {
         }
     }
 
+    /// Simplifies `Dependency::Detailed` to `Dependency::Simple` if only the
+    /// `version` field inside the `DependencyDetail` struct is set.
+    pub fn simplify(self) -> Self {
+        match self {
+            Dependency::Detailed(details) => details.simplify(),
+            dep => dep,
+        }
+    }
+
     pub fn req(&self) -> &str {
         match *self {
             Dependency::Simple(ref v) => v,
@@ -634,6 +643,45 @@ pub struct DependencyDetail {
     pub default_features: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<String>,
+}
+
+impl DependencyDetail {
+    fn simplify(self) -> Dependency {
+        let Self {
+            version: _,
+            registry,
+            registry_index,
+            path,
+            git,
+            branch,
+            tag,
+            rev,
+            features,
+            optional,
+            default_features,
+            package,
+        } = &self;
+
+        if registry.is_some()
+            || registry_index.is_some()
+            || path.is_some()
+            || git.is_some()
+            || branch.is_some()
+            || tag.is_some()
+            || rev.is_some()
+            || features.is_some()
+            || optional.is_some()
+            || default_features.is_some()
+            || package.is_some()
+        {
+            return Dependency::Detailed(self);
+        }
+
+        match self.version {
+            None => Dependency::Detailed(self),
+            Some(version) => Dependency::Simple(version),
+        }
+    }
 }
 
 /// When a dependency is defined as `{ workspace = true }`,
