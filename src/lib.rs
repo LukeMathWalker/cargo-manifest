@@ -771,7 +771,8 @@ pub struct Package<Metadata = Value> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edition: Option<MaybeInherited<Edition>>,
     /// e.g. "1.9.0"
-    pub version: MaybeInherited<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<MaybeInherited<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub build: Option<StringOrBool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -840,7 +841,7 @@ impl<Metadata> Package<Metadata> {
         Self {
             name,
             edition: None,
-            version: MaybeInherited::Local(version),
+            version: Some(MaybeInherited::Local(version)),
             build: None,
             workspace: None,
             authors: None,
