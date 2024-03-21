@@ -25,6 +25,12 @@ fn opt_level() {
 }
 
 #[test]
+fn opt_version() {
+    let m = Manifest::from_path("tests/opt_version.toml").expect("load metadata");
+    insta::assert_debug_snapshot!(m);
+}
+
+#[test]
 fn autobin() {
     let m = Manifest::from_path("tests/autobin/Cargo.toml").expect("load autobin");
     insta::assert_debug_snapshot!(m);

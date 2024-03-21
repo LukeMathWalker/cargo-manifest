@@ -11,8 +11,10 @@ Manifest {
                     E2018,
                 ),
             ),
-            version: Local(
-                "0.1.0",
+            version: Some(
+                Local(
+                    "0.1.0",
+                ),
             ),
             build: None,
             workspace: None,

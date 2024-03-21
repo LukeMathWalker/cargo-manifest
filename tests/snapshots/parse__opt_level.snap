@@ -7,8 +7,10 @@ Manifest {
         Package {
             name: "byteorder",
             edition: None,
-            version: Local(
-                "1.2.3",
+            version: Some(
+                Local(
+                    "1.2.3",
+                ),
             ),
             build: None,
             workspace: None,

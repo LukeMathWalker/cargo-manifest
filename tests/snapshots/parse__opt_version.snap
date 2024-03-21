@@ -1,17 +1,14 @@
 ---
 source: tests/parse.rs
+assertion_line: 30
 expression: m
 ---
 Manifest {
     package: Some(
         Package {
-            name: "foo",
+            name: "opt_version",
             edition: None,
-            version: Some(
-                Local(
-                    "1",
-                ),
-            ),
+            version: None,
             build: None,
             workspace: None,
             authors: None,
@@ -42,21 +39,40 @@ Manifest {
     workspace: None,
     dependencies: None,
     dev_dependencies: None,
-    build_dependencies: Some(
-        {
-            "lazy_static": Simple(
-                "1.4.0",
-            ),
-        },
-    ),
+    build_dependencies: None,
     target: None,
     features: None,
-    bin: None,
-    bench: None,
-    test: None,
-    example: None,
+    bin: Some(
+        [],
+    ),
+    bench: Some(
+        [],
+    ),
+    test: Some(
+        [],
+    ),
+    example: Some(
+        [],
+    ),
     patch: None,
-    lib: None,
+    lib: Some(
+        Product {
+            path: Some(
+                "lib.rs",
+            ),
+            name: None,
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: None,
+            required_features: [],
+            crate_type: None,
+        },
+    ),
     profile: None,
     badges: None,
 }

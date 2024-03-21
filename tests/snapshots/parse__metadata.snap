@@ -7,8 +7,10 @@ Manifest {
         Package {
             name: "metadata",
             edition: None,
-            version: Local(
-                "0.1.0",
+            version: Some(
+                Local(
+                    "0.1.0",
+                ),
             ),
             build: Some(
                 String(

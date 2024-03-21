@@ -7,9 +7,11 @@ Manifest {
         Package {
             name: "bar",
             edition: None,
-            version: Inherited {
-                workspace: True,
-            },
+            version: Some(
+                Inherited {
+                    workspace: True,
+                },
+            ),
             build: None,
             workspace: None,
             authors: Some(

@@ -7,8 +7,10 @@ Manifest {
         Package {
             name: "foo",
             edition: None,
-            version: Local(
-                "1",
+            version: Some(
+                Local(
+                    "1",
+                ),
             ),
             build: None,
             workspace: None,
