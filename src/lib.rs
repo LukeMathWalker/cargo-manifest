@@ -313,7 +313,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     }
 }
 
-fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> Vec<Product> {
+fn autoset<T, FS: AbstractFilesystem>(package: &Package<T>, dir: &str, fs: &FS) -> Vec<Product> {
     let mut out = Vec::new();
     let edition = match package.edition {
         Some(MaybeInherited::Local(edition)) => Some(edition),
