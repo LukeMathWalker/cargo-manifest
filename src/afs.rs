@@ -4,7 +4,7 @@ use std::io;
 use std::path::Path;
 
 pub trait AbstractFilesystem {
-    fn file_names_in(&self, rel_path: &str) -> io::Result<BTreeSet<Box<str>>>;
+    fn file_names_in<T: AsRef<Path>>(&self, rel_path: T) -> io::Result<BTreeSet<Box<str>>>;
 }
 
 pub struct Filesystem<'a> {
@@ -18,7 +18,7 @@ impl<'a> Filesystem<'a> {
 }
 
 impl<'a> AbstractFilesystem for Filesystem<'a> {
-    fn file_names_in(&self, rel_path: &str) -> io::Result<BTreeSet<Box<str>>> {
+    fn file_names_in<T: AsRef<Path>>(&self, rel_path: T) -> io::Result<BTreeSet<Box<str>>> {
         Ok(read_dir(self.path.join(rel_path))?
             .filter_map(|entry| {
                 entry
