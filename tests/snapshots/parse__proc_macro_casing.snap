@@ -45,10 +45,10 @@ Manifest {
     build_dependencies: None,
     target: None,
     features: None,
-    bin: None,
-    bench: None,
-    test: None,
-    example: None,
+    bin: [],
+    bench: [],
+    test: [],
+    example: [],
     patch: None,
     lib: Some(
         Product {

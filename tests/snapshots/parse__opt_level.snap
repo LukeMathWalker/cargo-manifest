@@ -149,10 +149,10 @@ Manifest {
             "std": [],
         },
     ),
-    bin: None,
-    bench: None,
-    test: None,
-    example: None,
+    bin: [],
+    bench: [],
+    test: [],
+    example: [],
     patch: Some(
         {
             "crates-io": {

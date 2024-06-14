@@ -1,6 +1,5 @@
 ---
 source: tests/parse.rs
-assertion_line: 30
 expression: m
 ---
 Manifest {
@@ -42,18 +41,10 @@ Manifest {
     build_dependencies: None,
     target: None,
     features: None,
-    bin: Some(
-        [],
-    ),
-    bench: Some(
-        [],
-    ),
-    test: Some(
-        [],
-    ),
-    example: Some(
-        [],
-    ),
+    bin: [],
+    bench: [],
+    test: [],
+    example: [],
     patch: None,
     lib: Some(
         Product {

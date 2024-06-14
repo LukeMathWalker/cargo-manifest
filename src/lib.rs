@@ -49,14 +49,14 @@ pub struct Manifest<Metadata = Value> {
     pub features: Option<FeatureSet>,
     /// Note that due to autobins feature this is not the complete list
     /// unless you run `complete_from_path`
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bin: Option<Vec<Product>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bench: Option<Vec<Product>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub test: Option<Vec<Product>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub example: Option<Vec<Product>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub bin: Vec<Product>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub bench: Vec<Product>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub test: Vec<Product>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub example: Vec<Product>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub patch: Option<PatchSet>,
@@ -88,10 +88,10 @@ impl<Metadata> Default for Manifest<Metadata> {
             lib: None,
             profile: None,
             badges: None,
-            bin: None,
-            bench: None,
-            test: None,
-            example: None,
+            bin: Default::default(),
+            bench: Default::default(),
+            test: Default::default(),
+            example: Default::default(),
         }
     }
 }
@@ -279,7 +279,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 })
             }
 
-            if package.autobins && self.bin.is_none() {
+            if package.autobins && self.bin.is_empty() {
                 let mut bin = autoset(package, "src/bin", &fs);
                 if src.contains("main.rs") {
                     bin.push(Product {
@@ -289,16 +289,16 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                         ..Product::default()
                     })
                 }
-                self.bin = Some(bin);
+                self.bin = bin;
             }
-            if package.autoexamples && self.example.is_none() {
-                self.example = Some(autoset(package, "examples", &fs));
+            if package.autoexamples && self.example.is_empty() {
+                self.example = autoset(package, "examples", &fs);
             }
-            if package.autotests && self.test.is_none() {
-                self.test = Some(autoset(package, "tests", &fs));
+            if package.autotests && self.test.is_empty() {
+                self.test = autoset(package, "tests", &fs);
             }
-            if package.autobenches && self.bench.is_none() {
-                self.bench = Some(autoset(package, "benches", &fs));
+            if package.autobenches && self.bench.is_empty() {
+                self.bench = autoset(package, "benches", &fs);
             }
 
             if matches!(package.build, None | Some(StringOrBool::Bool(true)))
