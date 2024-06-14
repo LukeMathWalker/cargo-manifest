@@ -55,39 +55,31 @@ Manifest {
     build_dependencies: None,
     target: None,
     features: None,
-    bin: Some(
-        [
-            Product {
-                path: Some(
-                    "src/main.rs",
-                ),
-                name: Some(
-                    "auto-bin",
-                ),
-                test: true,
-                doctest: true,
-                bench: true,
-                doc: true,
-                plugin: false,
-                proc_macro: false,
-                harness: true,
-                edition: Some(
-                    E2018,
-                ),
-                required_features: [],
-                crate_type: None,
-            },
-        ],
-    ),
-    bench: Some(
-        [],
-    ),
-    test: Some(
-        [],
-    ),
-    example: Some(
-        [],
-    ),
+    bin: [
+        Product {
+            path: Some(
+                "src/main.rs",
+            ),
+            name: Some(
+                "auto-bin",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: Some(
+                E2018,
+            ),
+            required_features: [],
+            crate_type: None,
+        },
+    ],
+    bench: [],
+    test: [],
+    example: [],
     patch: None,
     lib: None,
     profile: None,
