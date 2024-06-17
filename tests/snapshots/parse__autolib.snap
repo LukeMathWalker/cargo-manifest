@@ -83,7 +83,7 @@ Manifest {
             required_features: [],
             crate_type: Some(
                 [
-                    "rlib",
+                    "lib",
                 ],
             ),
         },
