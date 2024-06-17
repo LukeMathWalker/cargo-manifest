@@ -1,5 +1,5 @@
 ---
-source: tests/parse.rs
+source: tests/autolib.rs
 expression: m
 ---
 Manifest {
