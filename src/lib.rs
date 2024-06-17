@@ -274,7 +274,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                     name: Some(package.name.replace('-', "_")),
                     path: Some("src/lib.rs".to_string()),
                     edition,
-                    crate_type: Some(vec!["rlib".to_string()]),
+                    crate_type: Some(vec!["lib".to_string()]),
                     ..Product::default()
                 })
             }
