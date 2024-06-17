@@ -286,6 +286,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                         name: Some(package.name.clone()),
                         path: Some("src/main.rs".to_string()),
                         edition,
+                        crate_type: Some(vec!["bin".to_string()]),
                         ..Product::default()
                     })
                 }
@@ -327,6 +328,7 @@ fn autoset<T, FS: AbstractFilesystem>(package: &Package<T>, dir: &str, fs: &FS) 
                     name: Some(name.trim_end_matches(".rs").into()),
                     path: Some(rel_path),
                     edition,
+                    crate_type: Some(vec!["bin".to_string()]),
                     ..Product::default()
                 })
             } else if let Ok(sub) = fs.file_names_in(&rel_path) {
@@ -335,6 +337,7 @@ fn autoset<T, FS: AbstractFilesystem>(package: &Package<T>, dir: &str, fs: &FS) 
                         name: Some(name.into()),
                         path: Some(rel_path + "/main.rs"),
                         edition,
+                        crate_type: Some(vec!["bin".to_string()]),
                         ..Product::default()
                     })
                 }
