@@ -268,7 +268,39 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             };
 
             if let Some(ref mut lib) = self.lib {
-                lib.required_features.clear(); // not applicable
+                // Use `lib.name` if it's set, otherwise use `package.name` with dashes replaced by underscores
+                // (see <https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-name-field>).
+                if lib.name.is_none() {
+                    lib.name = Some(package.name.replace('-', "_"));
+                }
+
+                // Use `lib.path` if it's set, otherwise use `src/lib.rs` if it exists, otherwise return an error
+                // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-path-field).
+                if lib.path.is_none() {
+                    if src.contains("lib.rs") {
+                        lib.path = Some("src/lib.rs".to_string());
+                    } else {
+                        let msg =
+                            "can't find library, rename file to `src/lib.rs` or specify lib.path";
+                        return Err(Error::Other(msg.to_string()));
+                    }
+                }
+
+                // Use `lib.edition` if it's set, otherwise use `package.edition` unless it's inherited
+                // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-edition-field).
+                if lib.edition.is_none() {
+                    lib.edition = edition;
+                }
+
+                // Use `lib.crate_type` if it's set, otherwise use `["lib"]`
+                // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-crate-type-field).
+                if lib.crate_type.is_none() {
+                    lib.crate_type = Some(vec!["lib".to_string()]);
+                }
+
+                // `lib.required-features` has no effect on `[lib]`
+                // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-required-features-field).
+                lib.required_features.clear();
             } else if src.contains("lib.rs") {
                 self.lib = Some(Product {
                     name: Some(package.name.replace('-', "_")),
