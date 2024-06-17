@@ -14,13 +14,7 @@ Manifest {
             ),
             build: None,
             workspace: None,
-            authors: Some(
-                Local(
-                    [
-                        "Kornel <kornel@geekhood.net>",
-                    ],
-                ),
-            ),
+            authors: None,
             links: None,
             description: None,
             homepage: None,
@@ -37,24 +31,16 @@ Manifest {
             include: None,
             default_run: None,
             autobins: true,
-            autoexamples: false,
+            autoexamples: true,
             autotests: true,
             autobenches: true,
-            publish: Some(
-                Local(
-                    Flag(
-                        false,
-                    ),
-                ),
-            ),
+            publish: None,
             resolver: None,
         },
     ),
     cargo_features: None,
     workspace: None,
-    dependencies: Some(
-        {},
-    ),
+    dependencies: None,
     dev_dependencies: None,
     build_dependencies: None,
     target: None,
@@ -89,19 +75,5 @@ Manifest {
         },
     ),
     profile: None,
-    badges: Some(
-        Badges {
-            appveyor: None,
-            circle_ci: None,
-            gitlab: None,
-            travis_ci: None,
-            codecov: None,
-            coveralls: None,
-            is_it_maintained_issue_resolution: None,
-            is_it_maintained_open_issues: None,
-            maintenance: Maintenance {
-                status: None,
-            },
-        },
-    ),
+    badges: None,
 }
