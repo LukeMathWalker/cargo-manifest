@@ -311,7 +311,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 })
             }
 
-            if package.autobins && self.bin.is_empty() {
+            if matches!(package.autobins, None | Some(true)) && self.bin.is_empty() {
                 let mut bin = autoset(package, "src/bin", fs);
                 if src.contains("main.rs") {
                     bin.push(Product {
@@ -324,13 +324,13 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 }
                 self.bin = bin;
             }
-            if package.autoexamples && self.example.is_empty() {
+            if matches!(package.autoexamples, None | Some(true)) && self.example.is_empty() {
                 self.example = autoset(package, "examples", fs);
             }
-            if package.autotests && self.test.is_empty() {
+            if matches!(package.autotests, None | Some(true)) && self.test.is_empty() {
                 self.test = autoset(package, "tests", fs);
             }
-            if package.autobenches && self.bench.is_empty() {
+            if matches!(package.autobenches, None | Some(true)) && self.bench.is_empty() {
                 self.bench = autoset(package, "benches", fs);
             }
 
@@ -855,14 +855,14 @@ pub struct Package<Metadata = Value> {
     /// The default binary to run by cargo run.
     pub default_run: Option<String>,
 
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autobins: bool,
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autoexamples: bool,
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autotests: bool,
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autobenches: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autobins: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autoexamples: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autotests: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autobenches: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub publish: Option<MaybeInherited<Publish>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -893,10 +893,10 @@ impl<Metadata> Package<Metadata> {
             exclude: None,
             include: None,
             default_run: None,
-            autobins: true,
-            autoexamples: true,
-            autotests: true,
-            autobenches: true,
+            autobins: None,
+            autoexamples: None,
+            autotests: None,
+            autobenches: None,
             publish: None,
             resolver: None,
         }
