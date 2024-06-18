@@ -51,7 +51,9 @@ Manifest {
     features: None,
     bin: [
         Product {
-            path: None,
+            path: Some(
+                "src/bin/named-executable.rs",
+            ),
             name: Some(
                 "named-executable",
             ),
@@ -62,14 +64,94 @@ Manifest {
             plugin: false,
             proc_macro: false,
             harness: true,
-            edition: None,
+            edition: Some(
+                E2021,
+            ),
             required_features: [],
-            crate_type: None,
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
+        },
+        Product {
+            path: Some(
+                "src/bin/another-executable.rs",
+            ),
+            name: Some(
+                "another-executable",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: Some(
+                E2021,
+            ),
+            required_features: [],
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
+        },
+        Product {
+            path: Some(
+                "src/bin/multi-file-executable/main.rs",
+            ),
+            name: Some(
+                "multi-file-executable",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: Some(
+                E2021,
+            ),
+            required_features: [],
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
+        },
+        Product {
+            path: Some(
+                "src/main.rs",
+            ),
+            name: Some(
+                "test-package",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: Some(
+                E2021,
+            ),
+            required_features: [],
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
         },
     ],
     bench: [
         Product {
-            path: None,
+            path: Some(
+                "benches/large-input.rs",
+            ),
             name: Some(
                 "large-input",
             ),
@@ -80,14 +162,46 @@ Manifest {
             plugin: false,
             proc_macro: false,
             harness: true,
-            edition: None,
+            edition: Some(
+                E2021,
+            ),
             required_features: [],
-            crate_type: None,
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
+        },
+        Product {
+            path: Some(
+                "benches/multi-file-bench/main.rs",
+            ),
+            name: Some(
+                "multi-file-bench",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: Some(
+                E2021,
+            ),
+            required_features: [],
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
         },
     ],
     test: [
         Product {
-            path: None,
+            path: Some(
+                "tests/some-integration-tests.rs",
+            ),
             name: Some(
                 "some-integration-tests",
             ),
@@ -98,14 +212,46 @@ Manifest {
             plugin: false,
             proc_macro: false,
             harness: true,
-            edition: None,
+            edition: Some(
+                E2021,
+            ),
             required_features: [],
-            crate_type: None,
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
+        },
+        Product {
+            path: Some(
+                "tests/multi-file-test/main.rs",
+            ),
+            name: Some(
+                "multi-file-test",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: Some(
+                E2021,
+            ),
+            required_features: [],
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
         },
     ],
     example: [
         Product {
-            path: None,
+            path: Some(
+                "examples/simple.rs",
+            ),
             name: Some(
                 "simple",
             ),
@@ -116,9 +262,39 @@ Manifest {
             plugin: false,
             proc_macro: false,
             harness: true,
-            edition: None,
+            edition: Some(
+                E2021,
+            ),
             required_features: [],
-            crate_type: None,
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
+        },
+        Product {
+            path: Some(
+                "examples/multi-file-example/main.rs",
+            ),
+            name: Some(
+                "multi-file-example",
+            ),
+            test: true,
+            doctest: true,
+            bench: true,
+            doc: true,
+            plugin: false,
+            proc_macro: false,
+            harness: true,
+            edition: Some(
+                E2021,
+            ),
+            required_features: [],
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
         },
     ],
     patch: None,

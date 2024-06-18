@@ -316,28 +316,51 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 })
             }
 
-            if autobins && self.bin.is_empty() {
-                let mut bin = autoset(package, "src/bin", fs);
-                if src.contains("main.rs") {
-                    bin.push(Product {
-                        name: Some(package.name.clone()),
-                        path: Some("src/main.rs".to_string()),
-                        edition,
-                        crate_type: Some(vec!["bin".to_string()]),
-                        ..Product::default()
-                    })
+            let fill_target_defaults = |targets: &mut Vec<Product>| {
+                for target in targets {
+                    if target.edition.is_none() {
+                        target.edition = edition;
+                    }
+                    if target.crate_type.is_none() {
+                        target.crate_type = Some(vec!["bin".to_string()]);
+                    }
                 }
-                self.bin = bin;
+            };
+
+            let mut discovered_targets = discover_targets(fs, "src/bin")?;
+
+            let has_main_rs = src.contains("main.rs");
+            if has_main_rs {
+                let target = DiscoveredTarget {
+                    name: package.name.clone(),
+                    path: "src/main.rs".to_string(),
+                };
+                discovered_targets.push(target);
             }
-            if autoexamples && self.example.is_empty() {
-                self.example = autoset(package, "examples", fs);
+
+            process_discovered_targets(&mut self.bin, discovered_targets, autobins)?;
+            fill_target_defaults(&mut self.bin);
+
+            // For the 2015 edition, cargo defaults to using `src/main.rs` as
+            // the `path`, if it exists, unless it is explicitly set or there
+            // is a corresponding file in the `src/bin` directory.
+            if package.uses_legacy_auto_discovery() && has_main_rs {
+                for target in self.bin.iter_mut().filter(|t| t.path.is_none()) {
+                    target.path = Some("src/main.rs".to_string());
+                }
             }
-            if autotests && self.test.is_empty() {
-                self.test = autoset(package, "tests", fs);
-            }
-            if autobenches && self.bench.is_empty() {
-                self.bench = autoset(package, "benches", fs);
-            }
+
+            let discovered_targets = discover_targets(fs, "examples")?;
+            process_discovered_targets(&mut self.example, discovered_targets, autoexamples)?;
+            fill_target_defaults(&mut self.example);
+
+            let discovered_targets = discover_targets(fs, "tests")?;
+            process_discovered_targets(&mut self.test, discovered_targets, autotests)?;
+            fill_target_defaults(&mut self.test);
+
+            let discovered_targets = discover_targets(fs, "benches")?;
+            process_discovered_targets(&mut self.bench, discovered_targets, autobenches)?;
+            fill_target_defaults(&mut self.bench);
 
             if matches!(package.build, None | Some(StringOrBool::Bool(true)))
                 && fs.file_names_in(".")?.contains("build.rs")
@@ -385,37 +408,112 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     }
 }
 
-fn autoset<T, FS: AbstractFilesystem>(package: &Package<T>, dir: &str, fs: &FS) -> Vec<Product> {
-    let mut out = Vec::new();
-    let edition = match package.edition {
-        Some(MaybeInherited::Local(edition)) => Some(edition),
-        _ => None,
-    };
-    if let Ok(bins) = fs.file_names_in(dir) {
-        for name in bins {
-            let rel_path = format!("{}/{}", dir, name);
-            if name.ends_with(".rs") {
-                out.push(Product {
-                    name: Some(name.trim_end_matches(".rs").into()),
-                    path: Some(rel_path),
-                    edition,
-                    crate_type: Some(vec!["bin".to_string()]),
-                    ..Product::default()
-                })
-            } else if let Ok(sub) = fs.file_names_in(&rel_path) {
-                if sub.contains("main.rs") {
-                    out.push(Product {
-                        name: Some(name.into()),
-                        path: Some(rel_path + "/main.rs"),
-                        edition,
-                        crate_type: Some(vec!["bin".to_string()]),
-                        ..Product::default()
-                    })
-                }
+#[derive(Debug)]
+struct DiscoveredTarget {
+    name: String,
+    path: String,
+}
+
+/// Fills in missing [Product::path] fields from the auto-discovered targets
+/// and optionally adds the additional auto-discovered targets to the list
+/// of targets.
+fn process_discovered_targets(
+    targets: &mut Vec<Product>,
+    discovered_targets: Vec<DiscoveredTarget>,
+    add_discovered_targets: bool,
+) -> Result<(), Error> {
+    for target in targets.iter_mut() {
+        // `name` is always required, if it's missing we skip the target
+        // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-name-field).
+        let Some(ref name) = target.name else {
+            continue;
+        };
+
+        // Use `path` if it's set, otherwise try to find a matching auto-discovered target
+        // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-path-field).
+        if target.path.is_none() {
+            let discovered_target = discovered_targets.iter().find(|t| t.name == *name);
+            if let Some(discovered_target) = discovered_target {
+                target.path = Some(discovered_target.path.clone());
             }
+
+            // If no matching auto-discovered target was found the
+            // `path` field is kept as `None` to let the user decide
+            // how to handle the situation.
+            //
+            // `cargo`, for example, will show an error if the `path`
+            // field is not set and no auto-discovered target was found.
         }
     }
-    out
+
+    if add_discovered_targets {
+        for discovered_target in discovered_targets {
+            if targets.iter().any(|b| {
+                b.name.as_deref() == Some(&discovered_target.name)
+                    && b.path.as_deref() == Some(&discovered_target.path)
+            }) {
+                continue;
+            }
+
+            targets.push(Product {
+                name: Some(discovered_target.name),
+                path: Some(discovered_target.path),
+                edition: None,
+                ..Product::default()
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Discover targets in a specific directory
+/// (see <https://doc.rust-lang.org/cargo/guide/project-layout.html>).
+///
+/// This function can be used to discover e.g. binary targets in the `src/bin`
+/// directory, or tests in the `tests` directory.
+///
+/// It will look for files matching `{path}/{name}.rs` and
+/// `{path}/{name}/main.rs`, and return a list of name/path pairs.
+fn discover_targets<FS: AbstractFilesystem>(
+    fs: &FS,
+    path: &str,
+) -> Result<Vec<DiscoveredTarget>, Error> {
+    let Ok(file_names) = fs.file_names_in(path) else {
+        // Ideally we'd use proper error handling here, but since
+        // `std::io::ErrorKind::NotADirectory` is not stable yet, we can't
+        // match on the error kind and handle that case correctly.
+        return Ok(Default::default());
+    };
+
+    // Sort the file names to ensure a consistent order.
+    let mut file_names = file_names.into_iter().collect::<Vec<_>>();
+    file_names.sort_unstable();
+
+    let mut out = Vec::new();
+    for file_name in file_names {
+        let rel_path = format!("{}/{}", path, file_name);
+
+        if let Some(name) = file_name.strip_suffix(".rs") {
+            out.push(DiscoveredTarget {
+                name: name.into(),
+                path: rel_path.clone(),
+            });
+        }
+
+        let Ok(subfolder_file_names) = fs.file_names_in(&rel_path) else {
+            continue;
+        };
+
+        if subfolder_file_names.contains("main.rs") {
+            out.push(DiscoveredTarget {
+                name: file_name.into(),
+                path: rel_path + "/main.rs",
+            });
+        }
+    }
+
+    Ok(out)
 }
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
