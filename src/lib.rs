@@ -256,6 +256,11 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         &mut self,
         fs: &FS,
     ) -> Result<(), Error> {
+        let autobins = self.autobins();
+        let autotests = self.autotests();
+        let autoexamples = self.autoexamples();
+        let autobenches = self.autobenches();
+
         if let Some(ref mut package) = self.package {
             let src = match fs.file_names_in("src") {
                 Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(Default::default()),
@@ -311,7 +316,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 })
             }
 
-            if matches!(package.autobins, None | Some(true)) && self.bin.is_empty() {
+            if autobins && self.bin.is_empty() {
                 let mut bin = autoset(package, "src/bin", fs);
                 if src.contains("main.rs") {
                     bin.push(Product {
@@ -324,13 +329,13 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 }
                 self.bin = bin;
             }
-            if matches!(package.autoexamples, None | Some(true)) && self.example.is_empty() {
+            if autoexamples && self.example.is_empty() {
                 self.example = autoset(package, "examples", fs);
             }
-            if matches!(package.autotests, None | Some(true)) && self.test.is_empty() {
+            if autotests && self.test.is_empty() {
                 self.test = autoset(package, "tests", fs);
             }
-            if matches!(package.autobenches, None | Some(true)) && self.bench.is_empty() {
+            if autobenches && self.bench.is_empty() {
                 self.bench = autoset(package, "benches", fs);
             }
 
