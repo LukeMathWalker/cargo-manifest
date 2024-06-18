@@ -901,6 +901,23 @@ impl<Metadata> Package<Metadata> {
             resolver: None,
         }
     }
+
+    /// Returns whether to use the legacy behavior for target auto-discovery
+    /// from the 2015 Rust edition.
+    ///
+    /// The default value for target auto-discovery changed in the 2018 edition
+    /// (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#target-auto-discovery).
+    ///
+    /// - If the edition is not set or is set to 2015, we use the legacy behavior.
+    /// - If the edition is set to 2018 or later, we use the new behavior.
+    /// - If the edition is inherited, we assume that the edition is 2018
+    ///   or later, since inheritance is a newer feature.
+    fn uses_legacy_auto_discovery(&self) -> bool {
+        matches!(
+            self.edition,
+            None | Some(MaybeInherited::Local(Edition::E2015))
+        )
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
@@ -1061,5 +1078,28 @@ pub enum Resolver {
 impl Default for Resolver {
     fn default() -> Self {
         Self::V1
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_legacy_auto_discovery_flag() {
+        let mut package = Package::<()>::new("foo".into(), "1.0.0".into());
+        assert!(package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Local(Edition::E2015));
+        assert!(package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Local(Edition::E2018));
+        assert!(!package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Local(Edition::E2021));
+        assert!(!package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Inherited { workspace: True });
+        assert!(!package.uses_legacy_auto_discovery());
     }
 }
