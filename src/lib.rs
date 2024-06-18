@@ -303,9 +303,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             }
 
             if matches!(package.build, None | Some(StringOrBool::Bool(true)))
-                && fs
-                    .file_names_in(".")
-                    .map_or(false, |dir| dir.contains("build.rs"))
+                && fs.file_names_in(".")?.contains("build.rs")
             {
                 package.build = Some(StringOrBool::String("build.rs".to_string()));
             }
