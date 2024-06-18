@@ -896,12 +896,24 @@ pub struct Package<Metadata = Value> {
     /// The default binary to run by cargo run.
     pub default_run: Option<String>,
 
+    /// Disables binary auto discovery.
+    ///
+    /// Use [Manifest::autobins()] to get the effective value.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub autobins: Option<bool>,
+    /// Disables example auto discovery.
+    ///
+    /// Use [Manifest::autoexamples()] to get the effective value.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub autoexamples: Option<bool>,
+    /// Disables test auto discovery.
+    ///
+    /// Use [Manifest::autotests()] to get the effective value.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub autotests: Option<bool>,
+    /// Disables bench auto discovery.
+    ///
+    /// Use [Manifest::autobenches()] to get the effective value.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub autobenches: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
