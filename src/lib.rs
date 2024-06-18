@@ -256,6 +256,11 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         &mut self,
         fs: &FS,
     ) -> Result<(), Error> {
+        let autobins = self.autobins();
+        let autotests = self.autotests();
+        let autoexamples = self.autoexamples();
+        let autobenches = self.autobenches();
+
         if let Some(ref mut package) = self.package {
             let src = match fs.file_names_in("src") {
                 Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(Default::default()),
@@ -311,7 +316,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 })
             }
 
-            if package.autobins && self.bin.is_empty() {
+            if autobins && self.bin.is_empty() {
                 let mut bin = autoset(package, "src/bin", fs);
                 if src.contains("main.rs") {
                     bin.push(Product {
@@ -324,13 +329,13 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 }
                 self.bin = bin;
             }
-            if package.autoexamples && self.example.is_empty() {
+            if autoexamples && self.example.is_empty() {
                 self.example = autoset(package, "examples", fs);
             }
-            if package.autotests && self.test.is_empty() {
+            if autotests && self.test.is_empty() {
                 self.test = autoset(package, "tests", fs);
             }
-            if package.autobenches && self.bench.is_empty() {
+            if autobenches && self.bench.is_empty() {
                 self.bench = autoset(package, "benches", fs);
             }
 
@@ -341,6 +346,42 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             }
         }
         Ok(())
+    }
+
+    pub fn autobins(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.bin.is_empty();
+        pkg.autobins.unwrap_or(default_value)
+    }
+
+    pub fn autoexamples(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.example.is_empty();
+        pkg.autoexamples.unwrap_or(default_value)
+    }
+
+    pub fn autotests(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.test.is_empty();
+        pkg.autotests.unwrap_or(default_value)
+    }
+
+    pub fn autobenches(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.bench.is_empty();
+        pkg.autobenches.unwrap_or(default_value)
     }
 }
 
@@ -855,14 +896,14 @@ pub struct Package<Metadata = Value> {
     /// The default binary to run by cargo run.
     pub default_run: Option<String>,
 
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autobins: bool,
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autoexamples: bool,
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autotests: bool,
-    #[serde(default = "default_true", skip_serializing_if = "is_true")]
-    pub autobenches: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autobins: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autoexamples: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autotests: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autobenches: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub publish: Option<MaybeInherited<Publish>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -893,13 +934,30 @@ impl<Metadata> Package<Metadata> {
             exclude: None,
             include: None,
             default_run: None,
-            autobins: true,
-            autoexamples: true,
-            autotests: true,
-            autobenches: true,
+            autobins: None,
+            autoexamples: None,
+            autotests: None,
+            autobenches: None,
             publish: None,
             resolver: None,
         }
+    }
+
+    /// Returns whether to use the legacy behavior for target auto-discovery
+    /// from the 2015 Rust edition.
+    ///
+    /// The default value for target auto-discovery changed in the 2018 edition
+    /// (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#target-auto-discovery).
+    ///
+    /// - If the edition is not set or is set to 2015, we use the legacy behavior.
+    /// - If the edition is set to 2018 or later, we use the new behavior.
+    /// - If the edition is inherited, we assume that the edition is 2018
+    ///   or later, since inheritance is a newer feature.
+    fn uses_legacy_auto_discovery(&self) -> bool {
+        matches!(
+            self.edition,
+            None | Some(MaybeInherited::Local(Edition::E2015))
+        )
     }
 }
 
@@ -1061,5 +1119,65 @@ pub enum Resolver {
 impl Default for Resolver {
     fn default() -> Self {
         Self::V1
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_auto_discovery_defaults() {
+        let mut manifest = Manifest {
+            package: Some(Package::<()>::new("foo".into(), "1.0.0".into())),
+            ..Default::default()
+        };
+        assert!(manifest.autobins());
+        assert!(manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.bin = vec![Product::default()];
+        assert!(!manifest.autobins());
+        assert!(manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.package.as_mut().unwrap().autotests = Some(false);
+        assert!(!manifest.autobins());
+        assert!(!manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.package.as_mut().unwrap().autobins = Some(true);
+        assert!(manifest.autobins());
+        assert!(!manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.package.as_mut().unwrap().autobins = None;
+        manifest.package.as_mut().unwrap().edition = Some(MaybeInherited::Local(Edition::E2018));
+        assert!(manifest.autobins());
+        assert!(!manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+    }
+
+    #[test]
+    fn test_legacy_auto_discovery_flag() {
+        let mut package = Package::<()>::new("foo".into(), "1.0.0".into());
+        assert!(package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Local(Edition::E2015));
+        assert!(package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Local(Edition::E2018));
+        assert!(!package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Local(Edition::E2021));
+        assert!(!package.uses_legacy_auto_discovery());
+
+        package.edition = Some(MaybeInherited::Inherited { workspace: True });
+        assert!(!package.uses_legacy_auto_discovery());
     }
 }
