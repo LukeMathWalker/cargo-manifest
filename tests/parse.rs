@@ -33,23 +33,6 @@ fn opt_version() {
 }
 
 #[test]
-fn autobin() {
-    let manifest = r#"
-    [package]
-    name = "auto-bin"
-    version = "0.1.0"
-    publish = false
-    edition = "2018"
-
-    [badges]
-    travis-ci = { repository = "…" }
-    "#;
-    let tempdir = utils::prepare(manifest, vec!["src/main.rs"]);
-    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
-    insta::assert_debug_snapshot!(m);
-}
-
-#[test]
 fn autobuild() {
     let manifest = r#"
     [package]

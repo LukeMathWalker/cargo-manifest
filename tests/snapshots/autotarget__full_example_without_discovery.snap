@@ -1,14 +1,14 @@
 ---
-source: tests/parse.rs
+source: tests/autotarget.rs
 expression: m
 ---
 Manifest {
     package: Some(
         Package {
-            name: "auto-bin",
+            name: "test-package",
             edition: Some(
                 Local(
-                    E2018,
+                    E2021,
                 ),
             ),
             version: Some(
@@ -34,17 +34,19 @@ Manifest {
             exclude: None,
             include: None,
             default_run: None,
-            autobins: None,
-            autoexamples: None,
-            autotests: None,
-            autobenches: None,
-            publish: Some(
-                Local(
-                    Flag(
-                        false,
-                    ),
-                ),
+            autobins: Some(
+                false,
             ),
+            autoexamples: Some(
+                false,
+            ),
+            autotests: Some(
+                false,
+            ),
+            autobenches: Some(
+                false,
+            ),
+            publish: None,
             resolver: None,
         },
     ),
@@ -55,13 +57,18 @@ Manifest {
     build_dependencies: None,
     target: None,
     features: None,
-    bin: [
+    bin: [],
+    bench: [],
+    test: [],
+    example: [],
+    patch: None,
+    lib: Some(
         Product {
             path: Some(
-                "src/main.rs",
+                "src/lib.rs",
             ),
             name: Some(
-                "auto-bin",
+                "test_package",
             ),
             test: true,
             doctest: true,
@@ -71,43 +78,16 @@ Manifest {
             proc_macro: false,
             harness: true,
             edition: Some(
-                E2018,
+                E2021,
             ),
             required_features: [],
             crate_type: Some(
                 [
-                    "bin",
+                    "lib",
                 ],
             ),
         },
-    ],
-    bench: [],
-    test: [],
-    example: [],
-    patch: None,
-    lib: None,
-    profile: None,
-    badges: Some(
-        Badges {
-            appveyor: None,
-            circle_ci: None,
-            gitlab: None,
-            travis_ci: Some(
-                Badge {
-                    repository: "…",
-                    branch: "master",
-                    service: None,
-                    id: None,
-                    project_name: None,
-                },
-            ),
-            codecov: None,
-            coveralls: None,
-            is_it_maintained_issue_resolution: None,
-            is_it_maintained_open_issues: None,
-            maintenance: Maintenance {
-                status: None,
-            },
-        },
     ),
+    profile: None,
+    badges: None,
 }
