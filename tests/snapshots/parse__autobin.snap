@@ -74,7 +74,11 @@ Manifest {
                 E2018,
             ),
             required_features: [],
-            crate_type: None,
+            crate_type: Some(
+                [
+                    "bin",
+                ],
+            ),
         },
     ],
     bench: [],

@@ -12,7 +12,7 @@ pub trait AbstractFilesystem {
     ///
     /// This method should return a [std::io::ErrorKind::NotFound] error if the
     /// directory does not exist.
-    fn file_names_in(&self, rel_path: &str) -> io::Result<BTreeSet<Box<str>>>;
+    fn file_names_in<T: AsRef<Path>>(&self, rel_path: T) -> io::Result<BTreeSet<Box<str>>>;
 }
 
 /// A [AbstractFilesystem] implementation that reads from the actual filesystem
@@ -28,7 +28,7 @@ impl<'a> Filesystem<'a> {
 }
 
 impl<'a> AbstractFilesystem for Filesystem<'a> {
-    fn file_names_in(&self, rel_path: &str) -> io::Result<BTreeSet<Box<str>>> {
+    fn file_names_in<T: AsRef<Path>>(&self, rel_path: T) -> io::Result<BTreeSet<Box<str>>> {
         Ok(read_dir(self.path.join(rel_path))?
             .filter_map(|entry| {
                 entry

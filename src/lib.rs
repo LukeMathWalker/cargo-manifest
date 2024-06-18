@@ -244,7 +244,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         let manifest_dir = path
             .parent()
             .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "bad path"))?;
-        self.complete_from_abstract_filesystem(Filesystem::new(manifest_dir))
+        self.complete_from_abstract_filesystem(&Filesystem::new(manifest_dir))
     }
 
     /// `Cargo.toml` may not contain explicit information about `[lib]`, `[[bin]]` and
@@ -252,9 +252,9 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// You can provide any implementation of directory scan, which doesn't have to
     /// be reading straight from disk (might scan a tarball or a git repo, for example).
-    pub fn complete_from_abstract_filesystem(
+    pub fn complete_from_abstract_filesystem<FS: AbstractFilesystem>(
         &mut self,
-        fs: impl AbstractFilesystem,
+        fs: &FS,
     ) -> Result<(), Error> {
         if let Some(ref mut package) = self.package {
             let src = match fs.file_names_in("src") {
@@ -274,37 +274,36 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                     name: Some(package.name.replace('-', "_")),
                     path: Some("src/lib.rs".to_string()),
                     edition,
-                    crate_type: Some(vec!["rlib".to_string()]),
+                    crate_type: Some(vec!["lib".to_string()]),
                     ..Product::default()
                 })
             }
 
             if package.autobins && self.bin.is_empty() {
-                let mut bin = autoset(package, "src/bin", &fs);
+                let mut bin = autoset(package, "src/bin", fs);
                 if src.contains("main.rs") {
                     bin.push(Product {
                         name: Some(package.name.clone()),
                         path: Some("src/main.rs".to_string()),
                         edition,
+                        crate_type: Some(vec!["bin".to_string()]),
                         ..Product::default()
                     })
                 }
                 self.bin = bin;
             }
             if package.autoexamples && self.example.is_empty() {
-                self.example = autoset(package, "examples", &fs);
+                self.example = autoset(package, "examples", fs);
             }
             if package.autotests && self.test.is_empty() {
-                self.test = autoset(package, "tests", &fs);
+                self.test = autoset(package, "tests", fs);
             }
             if package.autobenches && self.bench.is_empty() {
-                self.bench = autoset(package, "benches", &fs);
+                self.bench = autoset(package, "benches", fs);
             }
 
             if matches!(package.build, None | Some(StringOrBool::Bool(true)))
-                && fs
-                    .file_names_in(".")
-                    .map_or(false, |dir| dir.contains("build.rs"))
+                && fs.file_names_in(".")?.contains("build.rs")
             {
                 package.build = Some(StringOrBool::String("build.rs".to_string()));
             }
@@ -313,7 +312,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     }
 }
 
-fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> Vec<Product> {
+fn autoset<T, FS: AbstractFilesystem>(package: &Package<T>, dir: &str, fs: &FS) -> Vec<Product> {
     let mut out = Vec::new();
     let edition = match package.edition {
         Some(MaybeInherited::Local(edition)) => Some(edition),
@@ -327,6 +326,7 @@ fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> V
                     name: Some(name.trim_end_matches(".rs").into()),
                     path: Some(rel_path),
                     edition,
+                    crate_type: Some(vec!["bin".to_string()]),
                     ..Product::default()
                 })
             } else if let Ok(sub) = fs.file_names_in(&rel_path) {
@@ -335,6 +335,7 @@ fn autoset<T>(package: &Package<T>, dir: &str, fs: &dyn AbstractFilesystem) -> V
                         name: Some(name.into()),
                         path: Some(rel_path + "/main.rs"),
                         edition,
+                        crate_type: Some(vec!["bin".to_string()]),
                         ..Product::default()
                     })
                 }
