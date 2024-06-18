@@ -59,7 +59,9 @@ Manifest {
             path: Some(
                 "lib.rs",
             ),
-            name: None,
+            name: Some(
+                "metadata",
+            ),
             test: true,
             doctest: true,
             bench: true,
@@ -69,7 +71,11 @@ Manifest {
             harness: true,
             edition: None,
             required_features: [],
-            crate_type: None,
+            crate_type: Some(
+                [
+                    "lib",
+                ],
+            ),
         },
     ),
     profile: None,

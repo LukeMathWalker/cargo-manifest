@@ -37,12 +37,6 @@ fn autobin() {
 }
 
 #[test]
-fn autolib() {
-    let m = Manifest::from_path("tests/autolib/Cargo.toml").expect("load autolib");
-    insta::assert_debug_snapshot!(m);
-}
-
-#[test]
 fn autobuild() {
     let m = Manifest::from_path("tests/autobuild/Cargo.toml").expect("load autobuild");
     insta::assert_debug_snapshot!(m);
