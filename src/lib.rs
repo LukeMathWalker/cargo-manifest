@@ -342,6 +342,42 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         }
         Ok(())
     }
+
+    pub fn autobins(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.bin.is_empty();
+        pkg.autobins.unwrap_or(default_value)
+    }
+
+    pub fn autoexamples(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.example.is_empty();
+        pkg.autoexamples.unwrap_or(default_value)
+    }
+
+    pub fn autotests(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.test.is_empty();
+        pkg.autotests.unwrap_or(default_value)
+    }
+
+    pub fn autobenches(&self) -> bool {
+        let Some(pkg) = &self.package else {
+            return false;
+        };
+
+        let default_value = !pkg.uses_legacy_auto_discovery() || self.bench.is_empty();
+        pkg.autobenches.unwrap_or(default_value)
+    }
 }
 
 fn autoset<T, FS: AbstractFilesystem>(package: &Package<T>, dir: &str, fs: &FS) -> Vec<Product> {
@@ -1084,6 +1120,43 @@ impl Default for Resolver {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_auto_discovery_defaults() {
+        let mut manifest = Manifest {
+            package: Some(Package::<()>::new("foo".into(), "1.0.0".into())),
+            ..Default::default()
+        };
+        assert!(manifest.autobins());
+        assert!(manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.bin = vec![Product::default()];
+        assert!(!manifest.autobins());
+        assert!(manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.package.as_mut().unwrap().autotests = Some(false);
+        assert!(!manifest.autobins());
+        assert!(!manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.package.as_mut().unwrap().autobins = Some(true);
+        assert!(manifest.autobins());
+        assert!(!manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+
+        manifest.package.as_mut().unwrap().autobins = None;
+        manifest.package.as_mut().unwrap().edition = Some(MaybeInherited::Local(Edition::E2018));
+        assert!(manifest.autobins());
+        assert!(!manifest.autotests());
+        assert!(manifest.autoexamples());
+        assert!(manifest.autobenches());
+    }
 
     #[test]
     fn test_legacy_auto_discovery_flag() {
