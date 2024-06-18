@@ -207,7 +207,7 @@ impl FromStr for Manifest<Value> {
 }
 
 impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
-    /// Parse `Cargo.toml`, and parse its `[package.metadata]` into a custom Serde-compatible type.package
+    /// Parse `Cargo.toml`, and parse its `[package.metadata]` into a custom Serde-compatible type.
     ///
     /// It does not call `complete_from_path`, so may be missing implicit data.
     pub fn from_slice_with_metadata(cargo_toml_content: &[u8]) -> Result<Self, Error> {
