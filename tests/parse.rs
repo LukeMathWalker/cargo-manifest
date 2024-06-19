@@ -3,6 +3,8 @@ use cargo_manifest::{Manifest, MaybeInherited};
 use std::fs::read;
 use std::str::FromStr;
 
+mod utils;
+
 #[test]
 fn own() {
     let m = Manifest::from_slice(&read("Cargo.toml").unwrap()).unwrap();
@@ -32,19 +34,47 @@ fn opt_version() {
 
 #[test]
 fn autobin() {
-    let m = Manifest::from_path("tests/autobin/Cargo.toml").expect("load autobin");
+    let manifest = r#"
+    [package]
+    name = "auto-bin"
+    version = "0.1.0"
+    publish = false
+    edition = "2018"
+
+    [badges]
+    travis-ci = { repository = "…" }
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["src/main.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
     insta::assert_debug_snapshot!(m);
 }
 
 #[test]
 fn autobuild() {
-    let m = Manifest::from_path("tests/autobuild/Cargo.toml").expect("load autobuild");
+    let manifest = r#"
+    [package]
+    name = "buildrstest"
+    version = "0.2.0"
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["build.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
     insta::assert_debug_snapshot!(m);
 }
 
+/// Checks that explicit `build` key in Cargo.toml has precedence over auto-detected build.rs file.
 #[test]
 fn metadata() {
-    let m = Manifest::from_path("tests/metadata/Cargo.toml").expect("load metadata");
+    let manifest = r#"
+    [package]
+    name = "metadata"
+    version = "0.1.0"
+    build = "foobar.rs"
+
+    [lib]
+    path = "lib.rs"
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["build.rs", "lib.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
     insta::assert_debug_snapshot!(m);
 }
 
