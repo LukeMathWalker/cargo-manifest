@@ -844,7 +844,10 @@ pub struct Package<Metadata = Value> {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edition: Option<MaybeInherited<Edition>>,
-    /// e.g. "1.9.0"
+    /// The version of the package (e.g. "1.9.0").
+    ///
+    /// Use [Package::version()] to get the effective value, with the default
+    /// value of "0.0.0" applied.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<MaybeInherited<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -953,6 +956,20 @@ impl<Metadata> Package<Metadata> {
             publish: None,
             resolver: None,
         }
+    }
+
+    /// Returns the effective version of the package.
+    ///
+    /// If the version is not set, it defaults to "0.0.0"
+    /// (see https://doc.rust-lang.org/cargo/reference/manifest.html#the-version-field).
+    pub fn version(&self) -> MaybeInherited<&str> {
+        self.version
+            .as_ref()
+            .map(|v| match v {
+                MaybeInherited::Local(v) => MaybeInherited::Local(v.as_str()),
+                MaybeInherited::Inherited { .. } => MaybeInherited::Inherited { workspace: True },
+            })
+            .unwrap_or_else(|| MaybeInherited::Local("0.0.0"))
     }
 
     /// Returns whether to use the legacy behavior for target auto-discovery
