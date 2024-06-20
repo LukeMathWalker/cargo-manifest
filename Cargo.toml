@@ -21,4 +21,4 @@ thiserror = "1.0.49"
 toml = { version = "0.8", features = ["preserve_order"] }
 
 [dev-dependencies]
-insta = "1.33.0"
+insta = "1.39.0"
