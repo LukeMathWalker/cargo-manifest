@@ -1,6 +1,0 @@
-[package]
-name = "auto-lib"
-version = "0.1.0"
-
-[lib]
-name = "foo"

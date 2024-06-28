@@ -1,14 +1,24 @@
 use cargo_manifest::Manifest;
 
+mod utils;
+
+const BASIC_MANIFEST: &str = r#"
+[package]
+name = "auto-lib"
+version = "0.1.0"
+"#;
+
 #[test]
 fn test_bin() {
-    let m = Manifest::from_path("tests/autolib/bin/Cargo.toml").unwrap();
+    let tempdir = utils::prepare(BASIC_MANIFEST, vec!["src/main.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
     assert!(m.lib.is_none());
 }
 
 #[test]
 fn test_lib_rs() {
-    let m = Manifest::from_path("tests/autolib/lib_rs/Cargo.toml").unwrap();
+    let tempdir = utils::prepare(BASIC_MANIFEST, vec!["src/lib.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
 
     let lib = m.lib.unwrap();
     assert_eq!(lib.path.as_deref(), Some("src/lib.rs"));
@@ -19,7 +29,16 @@ fn test_lib_rs() {
 
 #[test]
 fn test_name_override() {
-    let m = Manifest::from_path("tests/autolib/name_override/Cargo.toml").unwrap();
+    let manifest = r#"
+    [package]
+    name = "auto-lib"
+    version = "0.1.0"
+
+    [lib]
+    name = "foo"
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["src/lib.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
 
     let lib = m.lib.unwrap();
     assert_eq!(lib.path.as_deref(), Some("src/lib.rs"));
@@ -30,7 +49,16 @@ fn test_name_override() {
 
 #[test]
 fn test_path_override() {
-    let m = Manifest::from_path("tests/autolib/path_override/Cargo.toml").unwrap();
+    let manifest = r#"
+    [package]
+    name = "auto-lib"
+    version = "0.1.0"
+
+    [lib]
+    path = "src/foo.rs"
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["src/foo.rs", "src/lib.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
 
     let lib = m.lib.unwrap();
     assert_eq!(lib.path.as_deref(), Some("src/foo.rs"));
@@ -41,7 +69,18 @@ fn test_path_override() {
 
 #[test]
 fn test_other_override() {
-    let m = Manifest::from_path("tests/autolib/other_override/Cargo.toml").unwrap();
+    let manifest = r#"
+    [package]
+    name = "auto-lib"
+    version = "0.1.0"
+    edition = "2018"
+
+    [lib]
+    proc-macro = true
+    test = false
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["src/lib.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
 
     let lib = m.lib.unwrap();
     assert!(!lib.test);
