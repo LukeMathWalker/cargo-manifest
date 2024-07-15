@@ -273,22 +273,28 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             };
 
             if let Some(ref mut lib) = self.lib {
-                // Use `lib.name` if it's set, otherwise use `package.name` with dashes replaced by underscores
-                // (see <https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-name-field>).
-                if lib.name.is_none() {
-                    lib.name = Some(package.name.replace('-', "_"));
-                }
-
                 // Use `lib.path` if it's set, otherwise use `src/lib.rs` if it exists, otherwise return an error
                 // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-path-field).
                 if lib.path.is_none() {
+                    let fallback_name = lib.name.as_deref().unwrap_or(&package.name);
+
                     if src.contains("lib.rs") {
                         lib.path = Some("src/lib.rs".to_string());
+                    } else if package.uses_legacy_auto_discovery()
+                        && src.contains(format!("{fallback_name}.rs").as_str())
+                    {
+                        lib.path = Some(format!("src/{fallback_name}.rs"));
                     } else {
                         let msg =
                             "can't find library, rename file to `src/lib.rs` or specify lib.path";
                         return Err(Error::Other(msg.to_string()));
                     }
+                }
+
+                // Use `lib.name` if it's set, otherwise use `package.name` with dashes replaced by underscores
+                // (see <https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-name-field>).
+                if lib.name.is_none() {
+                    lib.name = Some(package.name.replace('-', "_"));
                 }
 
                 // Use `lib.edition` if it's set, otherwise use `package.edition` unless it's inherited
