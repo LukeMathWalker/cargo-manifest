@@ -320,3 +320,36 @@ fn test_bin_module_example() {
     insta::assert_snapshot!(format_products(&m.test), @"");
     insta::assert_snapshot!(format_products(&m.bench), @"");
 }
+
+/// see <https://github.com/rust-lang/crates.io/issues/9222>
+#[test]
+fn test_data_encoding_bin() {
+    let manifest = r#"
+    [package]
+    name = "data-encoding-bin"
+    version = "0.3.4"
+    license = "MIT"
+    edition = "2021"
+    keywords = ["base-conversion", "encoding", "base64", "base32", "hex"]
+    categories = ["command-line-utilities", "encoding"]
+    readme = "README.md"
+    repository = "https://github.com/ia0/data-encoding"
+    description = "Swiss Army knife for data-encoding"
+    include = ["Cargo.toml", "LICENSE", "README.md", "src/main.rs"]
+
+    [[bin]]
+    name = "data-encoding"
+    path = "src/main.rs"
+
+    [dependencies]
+    data-encoding = { version = "2.6.0", path = "../lib" }
+    getopts = "0.2"
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["src/main.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
+    assert!(m.lib.is_none());
+    insta::assert_snapshot!(format_products(&m.bin), @"data-encoding  →  src/main.rs");
+    insta::assert_snapshot!(format_products(&m.example), @"");
+    insta::assert_snapshot!(format_products(&m.test), @"");
+    insta::assert_snapshot!(format_products(&m.bench), @"");
+}
