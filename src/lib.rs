@@ -454,10 +454,10 @@ fn process_discovered_targets(
 
     if add_discovered_targets {
         for discovered_target in discovered_targets {
-            if targets.iter().any(|b| {
-                b.name.as_deref() == Some(&discovered_target.name)
-                    && b.path.as_deref() == Some(&discovered_target.path)
-            }) {
+            if targets
+                .iter()
+                .any(|b| b.path.as_deref() == Some(&discovered_target.path))
+            {
                 continue;
             }
 
