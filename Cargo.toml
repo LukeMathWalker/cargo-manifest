@@ -23,3 +23,6 @@ toml = { version = "0.8", features = ["preserve_order"] }
 [dev-dependencies]
 insta = "1.39.0"
 tempfile = "3.10.1"
+
+[package.metadata.release]
+pre-release-hook = ["git", "cliff", "-o", "--tag", "{{version}}"]
