@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.15.1 (2024-08-22)
+
+### :rocket: Enhancements
+
+- [#50](https://github.com/LukeMathWalker/cargo-manifest/pull/50) Implement legacy library discovery fallback ([@Turbo87](https://github/Turbo87))
+
+### :bug: Bugfixes
+
+- [#51](https://github.com/LukeMathWalker/cargo-manifest/pull/51) Fix duplicate `src/main.rs` discovery ([@Turbo87](https://github/Turbo87))
+
+### :memo: Documentation
+
+- [#52](https://github.com/LukeMathWalker/cargo-manifest/pull/52) Add release changelog ([@Turbo87](https://github/Turbo87))
+
 ## v0.15.0 (2024-06-29)
 
 ### :rocket: Enhancements
