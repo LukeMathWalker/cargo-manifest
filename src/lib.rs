@@ -122,7 +122,7 @@ pub struct Workspace {
 /// workspace. These keys can be inherited by defining them in the member package with
 /// `{key}.workspace = true`.
 ///
-/// See https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-package-table
+/// See <https://doc.rust-lang.org/nightly/cargo/reference/workspaces.html#the-package-table>
 /// for more details.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
@@ -1065,7 +1065,7 @@ impl<Metadata> Package<Metadata> {
     /// Returns the effective version of the package.
     ///
     /// If the version is not set, it defaults to "0.0.0"
-    /// (see https://doc.rust-lang.org/cargo/reference/manifest.html#the-version-field).
+    /// (see <https://doc.rust-lang.org/cargo/reference/manifest.html#the-version-field>).
     pub fn version(&self) -> MaybeInherited<&str> {
         self.version
             .as_ref()
@@ -1180,7 +1180,7 @@ pub struct Badges {
     #[serde(default, deserialize_with = "ok_or_default")]
     pub gitlab: Option<Badge>,
 
-    /// Travis CI: `repository` in format "<user>/<project>" is required.
+    /// Travis CI: `repository` in format "\<user>/\<project>" is required.
     /// `branch` is optional; default is `master`
     #[serde(default, deserialize_with = "ok_or_default")]
     pub travis_ci: Option<Badge>,
