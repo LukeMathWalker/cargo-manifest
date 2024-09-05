@@ -37,9 +37,9 @@ Usage
 ------------------------------------------------------------------------------
 
 ```rust
-fn main() {
-    let manifest = Manifest::from_path("Cargo.toml").unwrap();
-}
+use cargo_manifest::Manifest;
+
+let manifest = Manifest::from_path("Cargo.toml").unwrap();
 ```
 
 see [docs.rs](https://docs.rs/cargo-manifest) for more information.

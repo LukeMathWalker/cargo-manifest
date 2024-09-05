@@ -1,8 +1,6 @@
 #![allow(clippy::large_enum_variant)]
-//! This crate defines `struct`s that can be deserialized with Serde
-//! to load and inspect `Cargo.toml` metadata.
-//!
-//! See `Manifest::from_slice`.
+#![doc = include_str!("../README.md")]
+
 use serde::Deserializer;
 use serde::{Deserialize, Serialize, Serializer};
 use std::collections::BTreeMap;
