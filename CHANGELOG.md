@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.15.2 (2024-09-05)
+
+### :memo: Documentation
+
+- [#53](https://github.com/LukeMathWalker/cargo-manifest/pull/53) Improve readme document ([@Turbo87](https://github/Turbo87))
+- [#54](https://github.com/LukeMathWalker/cargo-manifest/pull/54) Fix rustdoc warnings ([@Turbo87](https://github/Turbo87))
+- [#55](https://github.com/LukeMathWalker/cargo-manifest/pull/55) Use `README.md` as module doc comment ([@Turbo87](https://github/Turbo87))
+
 ## v0.15.1 (2024-08-22)
 
 ### :rocket: Enhancements
