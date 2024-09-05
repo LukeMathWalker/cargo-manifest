@@ -60,7 +60,7 @@ This crate is a fork of the [`cargo_toml`](https://crates.io/crates/cargo_toml)
 project. There are only some minor differences between these projects at this
 point, you will need to evaluate which one fits your needs better.
 
-There is also [`cargo-util-schemas](https://crates.io/crates/cargo-util-schemas)
+There is also [`cargo-util-schemas`](https://crates.io/crates/cargo-util-schemas)
 now, which is maintained by the cargo team themselves. This crate was extracted
 from the cargo codebase and is used inside the `cargo` binary itself. It is
 kept up-to-date with the latest changes to the `Cargo.toml` file format, but is
