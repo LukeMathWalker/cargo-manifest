@@ -37,6 +37,8 @@ Usage
 ------------------------------------------------------------------------------
 
 ```rust
+use cargo_manifest::Manifest;
+
 fn main() {
     let manifest = Manifest::from_path("Cargo.toml").unwrap();
 }
