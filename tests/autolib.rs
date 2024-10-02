@@ -143,3 +143,18 @@ fn test_legacy_lib_with_new_edition() {
     let error = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap_err();
     insta::assert_snapshot!(error, @"can't find library, rename file to `src/lib.rs` or specify lib.path");
 }
+
+#[test]
+fn test_disabled_autolib() {
+    let manifest = r#"
+    [package]
+    name = "auto-lib"
+    version = "0.1.0"
+    edition = "2021"
+    autolib = false
+    "#;
+    let tempdir = utils::prepare(manifest, vec!["src/lib.rs"]);
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
+
+    assert!(m.lib.is_none());
+}
