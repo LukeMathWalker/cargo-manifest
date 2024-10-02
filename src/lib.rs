@@ -310,7 +310,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 // `lib.required-features` has no effect on `[lib]`
                 // (see https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-required-features-field).
                 lib.required_features.clear();
-            } else if src.contains("lib.rs") {
+            } else if !matches!(package.autolib, Some(false)) && src.contains("lib.rs") {
                 self.lib = Some(Product {
                     name: Some(package.name.replace('-', "_")),
                     path: Some("src/lib.rs".to_string()),
@@ -1001,6 +1001,9 @@ pub struct Package<Metadata = Value> {
     /// The default binary to run by cargo run.
     pub default_run: Option<String>,
 
+    /// Disables library auto discovery.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub autolib: Option<bool>,
     /// Disables binary auto discovery.
     ///
     /// Use [Manifest::autobins()] to get the effective value.
@@ -1051,6 +1054,7 @@ impl<Metadata> Package<Metadata> {
             exclude: None,
             include: None,
             default_run: None,
+            autolib: None,
             autobins: None,
             autoexamples: None,
             autotests: None,

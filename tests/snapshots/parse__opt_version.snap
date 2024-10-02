@@ -26,6 +26,7 @@ Manifest {
             exclude: None,
             include: None,
             default_run: None,
+            autolib: None,
             autobins: None,
             autoexamples: None,
             autotests: None,
