@@ -28,13 +28,13 @@ use std::str::FromStr;
 /// your own struct type if you use the metadata and don't want to use the catch-all `Value` type.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct Manifest<Metadata = Value> {
+pub struct Manifest<PackageMetadata = Value, WorkspaceMetadata = Value> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub package: Option<Package<Metadata>>,
+    pub package: Option<Package<PackageMetadata>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cargo_features: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub workspace: Option<Workspace>,
+    pub workspace: Option<Workspace<WorkspaceMetadata>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dependencies: Option<DepsSet>,
     #[serde(skip_serializing_if = "Option::is_none", alias = "dev_dependencies")]
@@ -96,7 +96,7 @@ impl<Metadata> Default for Manifest<Metadata> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
-pub struct Workspace {
+pub struct Workspace<Metadata = Value> {
     #[serde(default)]
     pub members: Vec<String>,
 
@@ -114,6 +114,9 @@ pub struct Workspace {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub package: Option<WorkspacePackage>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<Metadata>,
 }
 
 /// The workspace.package table is where you define keys that can be inherited by members of a

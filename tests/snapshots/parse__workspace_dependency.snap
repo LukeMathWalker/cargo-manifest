@@ -1,6 +1,7 @@
 ---
 source: tests/parse.rs
 expression: m
+snapshot_kind: text
 ---
 Manifest {
     package: None,
@@ -43,6 +44,7 @@ Manifest {
                 },
             ),
             package: None,
+            metadata: None,
         },
     ),
     dependencies: None,
