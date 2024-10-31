@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.16.0 (2024-10-31)
+
+### :boom: Breaking Change
+
+- [#57](https://github.com/LukeMathWalker/cargo-manifest/pull/57) Parse workspace metadata ([@hdoordt](https://github/hdoordt))
+
+### :rocket: Enhancements
+
+- [#56](https://github.com/LukeMathWalker/cargo-manifest/pull/56) Add support for `package.autolib` field ([@Turbo87](https://github/Turbo87))
+
 ## v0.15.2 (2024-09-05)
 
 ### :memo: Documentation
