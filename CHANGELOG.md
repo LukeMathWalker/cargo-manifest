@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.16.1 (2024-11-14)
+
+### :rocket: Enhancements
+
+- [#58](https://github.com/LukeMathWalker/cargo-manifest/pull/58) Edition: Implement `as_str()` fn ([@Turbo87](https://github/Turbo87))
+
 ## v0.16.0 (2024-10-31)
 
 ### :boom: Breaking Change
