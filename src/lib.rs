@@ -1246,6 +1246,16 @@ pub enum Edition {
     E2021,
 }
 
+impl Edition {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::E2015 => "2015",
+            Self::E2018 => "2018",
+            Self::E2021 => "2021",
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub enum Resolver {
     #[serde(rename = "1")]
