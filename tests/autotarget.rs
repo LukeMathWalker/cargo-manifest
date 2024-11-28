@@ -73,6 +73,54 @@ fn test_full_example() {
 }
 
 #[test]
+fn test_full_example_with_declarations_2024() {
+    let manifest = r#"
+    [package]
+    name = "test-package"
+    version = "0.1.0"
+    edition = "2024"
+
+    [[bin]]
+    name = "named-executable"
+
+    [[example]]
+    name = "simple"
+
+    [[test]]
+    name = "some-integration-tests"
+
+    [[bench]]
+    name = "large-input"
+    "#;
+    let tempdir = utils::prepare(manifest, full_example_extra_files());
+    let m = Manifest::from_path(tempdir.path().join("Cargo.toml")).unwrap();
+    insta::assert_debug_snapshot!(m);
+    insta::assert_snapshot!(format_product(&m.lib.unwrap()), @"test_package  →  src/lib.rs");
+
+    insta::assert_snapshot!(format_products(&m.bin), @r###"
+    named-executable  →  src/bin/named-executable.rs
+    another-executable  →  src/bin/another-executable.rs
+    multi-file-executable  →  src/bin/multi-file-executable/main.rs
+    test-package  →  src/main.rs
+    "###);
+
+    insta::assert_snapshot!(format_products(&m.example), @r###"
+    simple  →  examples/simple.rs
+    multi-file-example  →  examples/multi-file-example/main.rs
+    "###);
+
+    insta::assert_snapshot!(format_products(&m.test), @r###"
+    some-integration-tests  →  tests/some-integration-tests.rs
+    multi-file-test  →  tests/multi-file-test/main.rs
+    "###);
+
+    insta::assert_snapshot!(format_products(&m.bench), @r###"
+    large-input  →  benches/large-input.rs
+    multi-file-bench  →  benches/multi-file-bench/main.rs
+    "###);
+}
+
+#[test]
 fn test_full_example_with_declarations_2021() {
     let manifest = r#"
     [package]
