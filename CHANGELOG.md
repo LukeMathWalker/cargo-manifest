@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.17.0 (2024-11-28)
+
+### :rocket: Enhancements
+
+- [#59](https://github.com/LukeMathWalker/cargo-manifest/pull/59) toml: disable the unused `display` Cargo feature ([@AudaciousAxiom](https://github/AudaciousAxiom))
+- [#60](https://github.com/LukeMathWalker/cargo-manifest/pull/60) Add Edition 2024 ([@eth3lbert](https://github/eth3lbert))
+
 ## v0.16.1 (2024-11-14)
 
 ### :rocket: Enhancements
