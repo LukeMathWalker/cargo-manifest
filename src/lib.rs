@@ -1265,6 +1265,8 @@ pub enum Resolver {
     V1,
     #[serde(rename = "2")]
     V2,
+    #[serde(rename = "3")]
+    V3,
 }
 
 impl Default for Resolver {
