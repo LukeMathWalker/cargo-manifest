@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.18.0 (2025-01-10)
+
+### :rocket: Enhancements
+
+- [#64](https://github.com/LukeMathWalker/cargo-manifest/pull/64) Support `package.resolver = "3"`, as shipped in Rust 1.84.0 ([@LawnGnome](https://github/LawnGnome))
+
 ## v0.17.0 (2024-11-28)
 
 ### :rocket: Enhancements
