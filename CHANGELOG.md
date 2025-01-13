@@ -2,6 +2,10 @@
 
 ## v0.18.1 (2025-01-13)
 
+### Fixes
+
+- [#65](https://github.com/LukeMathWalker/cargo-manifest/pull/65) Don't populate `crate-type` for binaries, tests and benches
+
 ## v0.18.0 (2025-01-10)
 
 ### :rocket: Enhancements
