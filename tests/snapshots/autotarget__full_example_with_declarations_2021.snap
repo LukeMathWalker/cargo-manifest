@@ -69,11 +69,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
         Product {
             path: Some(
@@ -93,11 +89,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
         Product {
             path: Some(
@@ -117,11 +109,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
         Product {
             path: Some(
@@ -141,11 +129,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
     ],
     bench: [
@@ -167,11 +151,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
         Product {
             path: Some(
@@ -191,11 +171,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
     ],
     test: [
@@ -217,11 +193,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
         Product {
             path: Some(
@@ -241,11 +213,7 @@ Manifest {
                 E2021,
             ),
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
     ],
     example: [

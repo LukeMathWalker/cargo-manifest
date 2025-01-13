@@ -63,11 +63,7 @@ Manifest {
             harness: true,
             edition: None,
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
     ],
     bench: [
@@ -87,11 +83,7 @@ Manifest {
             harness: true,
             edition: None,
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
     ],
     test: [
@@ -111,11 +103,7 @@ Manifest {
             harness: true,
             edition: None,
             required_features: [],
-            crate_type: Some(
-                [
-                    "bin",
-                ],
-            ),
+            crate_type: None,
         },
     ],
     example: [

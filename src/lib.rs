@@ -257,6 +257,15 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
         &mut self,
         fs: &FS,
     ) -> Result<(), Error> {
+        enum ProductType {
+            #[allow(dead_code)]
+            Lib,
+            Bin,
+            Example,
+            Test,
+            Bench,
+        }
+
         let autobins = self.autobins();
         let autotests = self.autotests();
         let autoexamples = self.autoexamples();
@@ -323,12 +332,13 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
                 })
             }
 
-            let fill_target_defaults = |targets: &mut Vec<Product>| {
+            let fill_target_defaults = |targets: &mut Vec<Product>, kind: ProductType| {
                 for target in targets {
                     if target.edition.is_none() {
                         target.edition = edition;
                     }
-                    if target.crate_type.is_none() {
+
+                    if matches!(kind, ProductType::Example) && target.crate_type.is_none() {
                         target.crate_type = Some(vec!["bin".to_string()]);
                     }
                 }
@@ -346,7 +356,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
             }
 
             process_discovered_targets(&mut self.bin, discovered_targets, autobins)?;
-            fill_target_defaults(&mut self.bin);
+            fill_target_defaults(&mut self.bin, ProductType::Bin);
 
             // For the 2015 edition, cargo defaults to using `src/main.rs` as
             // the `path`, if it exists, unless it is explicitly set or there
@@ -359,15 +369,15 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
 
             let discovered_targets = discover_targets(fs, "examples")?;
             process_discovered_targets(&mut self.example, discovered_targets, autoexamples)?;
-            fill_target_defaults(&mut self.example);
+            fill_target_defaults(&mut self.example, ProductType::Example);
 
             let discovered_targets = discover_targets(fs, "tests")?;
             process_discovered_targets(&mut self.test, discovered_targets, autotests)?;
-            fill_target_defaults(&mut self.test);
+            fill_target_defaults(&mut self.test, ProductType::Test);
 
             let discovered_targets = discover_targets(fs, "benches")?;
             process_discovered_targets(&mut self.bench, discovered_targets, autobenches)?;
-            fill_target_defaults(&mut self.bench);
+            fill_target_defaults(&mut self.bench, ProductType::Bench);
 
             if matches!(package.build, None | Some(StringOrBool::Bool(true)))
                 && fs.file_names_in(".")?.contains("build.rs")
