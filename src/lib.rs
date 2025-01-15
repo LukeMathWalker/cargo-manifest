@@ -70,7 +70,7 @@ pub struct Manifest<PackageMetadata = Value, WorkspaceMetadata = Value> {
     pub badges: Option<Badges>,
 }
 
-impl<Metadata> Default for Manifest<Metadata> {
+impl<PackageMetadata, WorkspaceMetadata> Default for Manifest<PackageMetadata, WorkspaceMetadata> {
     #[allow(deprecated)]
     fn default() -> Self {
         Self {
