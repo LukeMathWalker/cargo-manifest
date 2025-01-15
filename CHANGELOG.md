@@ -2,7 +2,15 @@
 
 ## v0.19.0 (2025-01-15)
 
+### :boom: Breaking Change
+
+- [#66](https://github.com/LukeMathWalker/cargo-manifest/pull/66) Fix impl Default for Manifest ([@hdoordt](https://github/hdoordt))
+
 ## v0.18.1 (2025-01-13)
+
+### :bug: Bugfixes
+
+- [#65](https://github.com/LukeMathWalker/cargo-manifest/pull/65) Fix: don't populate 'crate-type' with 'bin' for binaries ([@LukeMathWalker](https://github/LukeMathWalker))
 
 ## v0.18.0 (2025-01-10)
 
