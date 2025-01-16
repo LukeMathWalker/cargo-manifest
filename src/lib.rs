@@ -178,6 +178,10 @@ fn is_true(value: &bool) -> bool {
     *value
 }
 
+fn is_false(value: &bool) -> bool {
+    !value
+}
+
 impl Manifest<Value> {
     /// Parse contents of a `Cargo.toml` file already loaded as a byte slice.
     ///
@@ -656,12 +660,12 @@ pub struct Product {
 
     /// If the product is meant to be a compiler plugin, this field must be set to true
     /// for Cargo to correctly compile it and make it available for all dependencies.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_false")]
     pub plugin: bool,
 
     /// If the product is meant to be a "macros 1.1" procedural macro, this field must
     /// be set to true.
-    #[serde(default, alias = "proc_macro")]
+    #[serde(default, alias = "proc_macro", skip_serializing_if = "is_false")]
     pub proc_macro: bool,
 
     /// If set to false, `cargo test` will omit the `--test` flag to rustc, which
