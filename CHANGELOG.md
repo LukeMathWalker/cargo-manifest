@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.19.1 (2025-01-16)
+
 ## v0.19.0 (2025-01-15)
 
 ### :boom: Breaking Change
