@@ -195,6 +195,25 @@ documentation.workspace = true
     insta::assert_debug_snapshot!(m);
 }
 
+/// We can work with lints in package manifest.
+#[test]
+fn package_lints() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "bar"
+version.workspace = true
+
+[lints.rust]
+
+[lints.clippy]
+complexity = { level = "forbid", other = "other_key" }
+"#,
+    )
+    .unwrap();
+    insta::assert_debug_snapshot!(m);
+}
+
 /// We can work with lints inherited from the workspace manifest.
 #[test]
 fn workspace_lints_inheritance() {
