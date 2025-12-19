@@ -69,4 +69,5 @@ Manifest {
     ),
     profile: None,
     badges: None,
+    lints: None,
 }

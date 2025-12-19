@@ -78,4 +78,5 @@ Manifest {
     lib: None,
     profile: None,
     badges: None,
+    lints: None,
 }

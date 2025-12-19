@@ -14,6 +14,8 @@ pub type DepsSet = BTreeMap<String, Dependency>;
 pub type TargetDepsSet = BTreeMap<String, Target>;
 pub type FeatureSet = BTreeMap<String, Vec<String>>;
 pub type PatchSet = BTreeMap<String, DepsSet>;
+pub type ToolLintsSet = BTreeMap<String, Lint>;
+pub type LintsSet = BTreeMap<String, ToolLintsSet>;
 
 mod afs;
 mod error;
@@ -68,6 +70,9 @@ pub struct Manifest<PackageMetadata = Value, WorkspaceMetadata = Value> {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub badges: Option<Badges>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lints: Option<MaybeInheritedLintsSet>,
 }
 
 impl<PackageMetadata, WorkspaceMetadata> Default for Manifest<PackageMetadata, WorkspaceMetadata> {
@@ -85,6 +90,7 @@ impl<PackageMetadata, WorkspaceMetadata> Default for Manifest<PackageMetadata, W
             patch: None,
             lib: None,
             profile: None,
+            lints: None,
             badges: None,
             bin: Default::default(),
             bench: Default::default(),
@@ -117,6 +123,9 @@ pub struct Workspace<Metadata = Value> {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<Metadata>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lints: Option<LintsSet>,
 }
 
 /// The workspace.package table is where you define keys that can be inherited by members of a
@@ -1280,6 +1289,74 @@ pub enum Resolver {
     V2,
     #[serde(rename = "3")]
     V3,
+}
+
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum LintLevel {
+    Forbid,
+    Deny,
+    Warn,
+    Allow,
+}
+
+impl LintLevel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Forbid => "forbid",
+            Self::Deny => "deny",
+            Self::Warn => "warn",
+            Self::Allow => "allow",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct LintConfig {
+    pub level: LintLevel,
+    #[serde(default)]
+    pub priority: i8,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Lint {
+    Level(LintLevel),
+    Config(LintConfig),
+}
+
+impl Lint {
+    pub fn level(&self) -> LintLevel {
+        match self {
+            Self::Level(level) => *level,
+            Self::Config(config) => config.level,
+        }
+    }
+
+    pub fn priority(&self) -> i8 {
+        match self {
+            Self::Level(_) => 0,
+            Self::Config(config) => config.priority,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MaybeInheritedLintsSet {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub workspace: Option<True>,
+    #[serde(flatten)]
+    pub lints: LintsSet,
+}
+
+impl MaybeInheritedLintsSet {
+    pub fn is_inherited(&self) -> bool {
+        match &self.workspace {
+            &Some(True) => true,
+            _ => false,
+        }
+    }
 }
 
 #[cfg(test)]
