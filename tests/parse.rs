@@ -195,6 +195,94 @@ documentation.workspace = true
     insta::assert_debug_snapshot!(m);
 }
 
+/// We can work with lints inherited from the workspace manifest.
+#[test]
+fn workspace_lints_inheritance() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "bar"
+version.workspace = true
+
+[lints]
+workspace = true
+"#,
+    )
+    .unwrap();
+    insta::assert_debug_snapshot!(m);
+}
+
+/// We can work override lints inherited from the workspace manifest.
+///
+/// At this moment doing this would be a hard error - but `cargo-util-schemas` parses this correctly
+/// Also as per [#13157](https://github.com/rust-lang/cargo/issues/13157), this will be supported in future
+#[test]
+fn workspace_lints_override_inherited() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "bar"
+version.workspace = true
+
+[lints]
+workspace = true
+rust.unused = "forbid"
+clippy.complexity = { level = "deny" }
+"#,
+    )
+    .unwrap();
+    insta::assert_debug_snapshot!(m);
+
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "bar"
+version.workspace = true
+
+[lints]
+workspace = true
+
+[lints.rust]
+unused = "forbid"
+
+[lints.clippy]
+complexity = { level = "deny" }
+"#,
+    )
+    .unwrap();
+    insta::assert_debug_snapshot!(m);
+}
+
+#[test]
+fn workspace_lints() {
+    let m = Manifest::from_str(
+        r#"
+[workspace]
+members = ["core"]
+[workspace.lints]
+rust.unused = { level = "deny", priority = -1 }
+clippy.complexity = { level = "warn", priority = 1 }
+"#,
+    )
+    .unwrap();
+    insta::assert_debug_snapshot!(m);
+
+    let m = Manifest::from_str(
+        r#"
+[workspace]
+members = ["core"]
+
+[workspace.lints.rust]
+unused = { level = "deny", priority = -1 }
+
+[workspace.lints]
+clippy = { complexity = { level = "warn", priority = 1 }, pedantic = "allow" }
+"#,
+    )
+    .unwrap();
+    insta::assert_debug_snapshot!(m);
+}
+
 /// This test ensures that we correctly handle crate dependencies that are deferred to the top-level workspace.
 #[test]
 fn workspace_dependency() {

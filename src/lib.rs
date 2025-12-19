@@ -1352,10 +1352,7 @@ pub struct MaybeInheritedLintsSet {
 
 impl MaybeInheritedLintsSet {
     pub fn is_inherited(&self) -> bool {
-        match &self.workspace {
-            &Some(True) => true,
-            _ => false,
-        }
+        matches!(&self.workspace, &Some(True));
     }
 }
 

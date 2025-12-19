@@ -1,0 +1,59 @@
+---
+source: tests/parse.rs
+assertion_line: 283
+expression: m
+---
+Manifest {
+    package: None,
+    cargo_features: None,
+    workspace: Some(
+        Workspace {
+            members: [
+                "core",
+            ],
+            default_members: None,
+            exclude: None,
+            resolver: None,
+            dependencies: None,
+            package: None,
+            metadata: None,
+            lints: Some(
+                {
+                    "clippy": {
+                        "complexity": Config(
+                            LintConfig {
+                                level: Warn,
+                                priority: 1,
+                            },
+                        ),
+                        "pedantic": Level(
+                            Allow,
+                        ),
+                    },
+                    "rust": {
+                        "unused": Config(
+                            LintConfig {
+                                level: Deny,
+                                priority: -1,
+                            },
+                        ),
+                    },
+                },
+            ),
+        },
+    ),
+    dependencies: None,
+    dev_dependencies: None,
+    build_dependencies: None,
+    target: None,
+    features: None,
+    bin: [],
+    bench: [],
+    test: [],
+    example: [],
+    patch: None,
+    lib: None,
+    profile: None,
+    badges: None,
+    lints: None,
+}
