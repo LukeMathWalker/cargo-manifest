@@ -246,9 +246,7 @@ impl<Metadata: for<'a> Deserialize<'a>> Manifest<Metadata> {
     ///
     /// This scans the disk to make the data in the manifest as complete as possible.
     pub fn complete_from_path(&mut self, path: &Path) -> Result<(), Error> {
-        let manifest_dir = path
-            .parent()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "bad path"))?;
+        let manifest_dir = path.parent().ok_or_else(|| io::Error::other("bad path"))?;
         self.complete_from_abstract_filesystem(&Filesystem::new(manifest_dir))
     }
 
@@ -1273,20 +1271,15 @@ impl Edition {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Default, Copy, Clone, Hash, Serialize, Deserialize)]
 pub enum Resolver {
     #[serde(rename = "1")]
+    #[default]
     V1,
     #[serde(rename = "2")]
     V2,
     #[serde(rename = "3")]
     V3,
-}
-
-impl Default for Resolver {
-    fn default() -> Self {
-        Self::V1
-    }
 }
 
 #[cfg(test)]
