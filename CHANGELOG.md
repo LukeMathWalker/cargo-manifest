@@ -1,6 +1,16 @@
 # Changelog
 
+## v0.20.0 (2025-12-30)
+
+### :rocket: Enhancements
+
+- [#70](https://github.com/LukeMathWalker/cargo-manifest/pull/70) Feature: lints & workspace.lints ([@ram-nad](https://github/ram-nad))
+
 ## v0.19.1 (2025-01-16)
+
+### :rocket: Enhancements
+
+- [#67](https://github.com/LukeMathWalker/cargo-manifest/pull/67) Don't serialize boolean fields if they're set to their default value ([@LukeMathWalker](https://github/LukeMathWalker))
 
 ## v0.19.0 (2025-01-15)
 
