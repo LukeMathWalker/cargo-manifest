@@ -1,16 +1,17 @@
 ---
 source: tests/parse.rs
+assertion_line: 214
 expression: m
 ---
 Manifest {
     package: Some(
         Package {
-            name: "core",
+            name: "bar",
             edition: None,
             version: Some(
-                Local(
-                    "0.1.0",
-                ),
+                Inherited {
+                    workspace: True,
+                },
             ),
             build: None,
             workspace: None,
@@ -41,31 +42,7 @@ Manifest {
     ),
     cargo_features: None,
     workspace: None,
-    dependencies: Some(
-        {
-            "chrono": Inherited(
-                InheritedDependencyDetail {
-                    workspace: True,
-                    features: None,
-                    optional: None,
-                },
-            ),
-            "config": Simple(
-                "0.13",
-            ),
-            "tokio": Inherited(
-                InheritedDependencyDetail {
-                    workspace: True,
-                    features: Some(
-                        [
-                            "rt-multi-thread",
-                        ],
-                    ),
-                    optional: None,
-                },
-            ),
-        },
-    ),
+    dependencies: None,
     dev_dependencies: None,
     build_dependencies: None,
     target: None,
@@ -78,5 +55,20 @@ Manifest {
     lib: None,
     profile: None,
     badges: None,
-    lints: None,
+    lints: Some(
+        MaybeInheritedLintsSet {
+            workspace: None,
+            lints: {
+                "clippy": {
+                    "complexity": Config(
+                        LintConfig {
+                            level: Forbid,
+                            priority: 0,
+                        },
+                    ),
+                },
+                "rust": {},
+            },
+        },
+    ),
 }

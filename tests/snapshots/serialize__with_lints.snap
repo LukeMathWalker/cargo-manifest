@@ -1,0 +1,11 @@
+---
+source: tests/serialize.rs
+assertion_line: 33
+expression: serialized
+---
+[package]
+name = "foo"
+version = "1.0.0"
+
+[lints.rust]
+unused = "forbid"
