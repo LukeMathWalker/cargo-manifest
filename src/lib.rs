@@ -476,10 +476,15 @@ fn process_discovered_targets(
 
     if add_discovered_targets {
         for discovered_target in discovered_targets {
-            if targets
-                .iter()
-                .any(|b| b.path.as_deref() == Some(&discovered_target.path))
-            {
+            let discovered_path =
+                path_clean::clean(std::path::PathBuf::from(&discovered_target.path));
+            if targets.iter().any(|b| {
+                let Some(path) = &b.path else {
+                    return false;
+                };
+                let path = path_clean::clean(std::path::PathBuf::from(path));
+                path == discovered_path
+            }) {
                 continue;
             }
 
