@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.21.0 (2026-04-12)
+
 ## v0.20.0 (2025-12-30)
 
 ### :rocket: Enhancements
