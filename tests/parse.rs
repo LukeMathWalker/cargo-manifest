@@ -302,6 +302,26 @@ clippy = { complexity = { level = "warn", priority = 1 }, pedantic = "allow" }
     insta::assert_debug_snapshot!(m);
 }
 
+/// TOML 1.1 allows inline tables to span multiple lines and have trailing commas.
+#[test]
+fn toml_1_1_multi_line_inline_table() {
+    let m = Manifest::from_str(
+        r#"
+[package]
+name = "foo"
+version = "1"
+
+[dependencies]
+serde = {
+    version = "1.0",
+    features = ["derive"],
+}
+"#,
+    )
+    .unwrap();
+    insta::assert_debug_snapshot!(m);
+}
+
 /// This test ensures that we correctly handle crate dependencies that are deferred to the top-level workspace.
 #[test]
 fn workspace_dependency() {
